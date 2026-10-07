@@ -109,7 +109,7 @@ The server listens on `127.0.0.1` only, so nobody else on the network can see th
 | **GPS tracking** | Set where this street light is: *Use my location*, *Pick on map*, or type coordinates. Incidents appear on the map. |
 | **Alert contacts** | Add people to alert (email or Telegram), test them, and choose *Operator confirms* (default) or *Automatic*. |
 | **Sensors & lights** | Connect the ESP32 (pick its USB port), see PIR/LDR readings and what the lamp is doing, test the lamp and buzzer by hand, and **Simulate SOS** / **Clear SOS**. |
-| **Analytics** | Incidents per day and hour, what was detected, false-alarm rate, people/vehicle counts over 24 h, and the **energy report** (kWh, money and CO₂ saved by dimming). |
+| **Analytics** | Incidents per day and hour, what was detected, false-alarm rate, people/vehicle counts over 24 h, the **energy report** (kWh, money and CO₂ saved by dimming), and the **activity heatmap**: where people's feet were, over a recent camera view with faces blurred, which helps place zones and tripwires. |
 | **Reports** | Download a PDF (summary, log, evidence photos) or CSV for a date range. |
 | **Settings** | Time zone, AI model and thresholds, risk rules, night hours, lamp dim level, alert cooldowns, how long evidence is kept. |
 

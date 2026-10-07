@@ -54,6 +54,10 @@ CREATE TABLE IF NOT EXISTS metrics(
 );
 CREATE INDEX IF NOT EXISTS idx_metrics_ts ON metrics(ts);
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS heatmap(
+    day TEXT PRIMARY KEY,            -- local date YYYY-MM-DD
+    cells TEXT NOT NULL              -- JSON list of counts, row by row (HEAT_W x HEAT_H)
+);
 CREATE TABLE IF NOT EXISTS energy(
     day TEXT PRIMARY KEY,            -- local date YYYY-MM-DD
     lamp_wh REAL NOT NULL DEFAULT 0, -- what the smart lamp used
@@ -251,6 +255,20 @@ class Store:
             "baseline_wh = baseline_wh + excluded.baseline_wh, night_s = night_s + excluded.night_s",
             (day, lamp_wh, baseline_wh, night_s),
         )
+
+    def add_heat(self, day: str, cells: list[int]) -> None:
+        with self._lock:
+            row = self._db.execute("SELECT cells FROM heatmap WHERE day = ?", (day,)).fetchone()
+            if row:
+                old = json.loads(row["cells"])
+                if len(old) == len(cells):
+                    cells = [a + b for a, b in zip(old, cells, strict=True)]
+            self._db.execute("INSERT INTO heatmap(day, cells) VALUES(?, ?) ON CONFLICT(day) DO UPDATE SET cells = excluded.cells",
+                             (day, json.dumps(cells)))
+            self._db.commit()
+
+    def heat_since(self, day: str) -> list[list[int]]:
+        return [json.loads(row["cells"]) for row in self._query("SELECT cells FROM heatmap WHERE day >= ?", (day,))]
 
     def energy_since(self, day: str) -> list[dict]:
         return [dict(row) for row in self._query("SELECT * FROM energy WHERE day >= ? ORDER BY day", (day,))]

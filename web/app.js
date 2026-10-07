@@ -1247,6 +1247,10 @@ PAGES.analytics = {
           <div class="chart-box sm"><canvas id="c-energy"></canvas></div>
         </div>
       </div>
+      <div class="card">
+        <div class="card-head"><span class="chip-icon amber">${ic("pin")}</span><div><h2>Where people go</h2><div class="sub">Feet positions counted on the camera view · faces blurred in the background</div></div></div>
+        <div class="card-body"><div class="heat-box"><canvas id="c-heat"></canvas><div class="heat-empty muted" id="heat-empty" hidden>No people counted yet in this period</div></div></div>
+      </div>
       <div class="grid g-2">
         <div class="card"><div class="card-head"><h3>What was detected</h3></div><div class="card-body"><div class="chart-box sm"><canvas id="c-label"></canvas></div></div></div>
         <div class="card"><div class="card-head"><h3>Street activity · last 24 h</h3><span class="spacer"></span><span class="sub">Average per 30 min while camera is on</span></div><div class="card-body"><div class="chart-box sm"><canvas id="c-line"></canvas></div></div></div>
@@ -1282,6 +1286,7 @@ PAGES.analytics = {
     S.charts.push(new Chart($("#c-label"), { type: "doughnut", data: { labels: a.by_label.length ? a.by_label.map((x) => x[0]) : ["No incidents"],
       datasets: [{ data: a.by_label.length ? a.by_label.map((x) => x[1]) : [1], backgroundColor: a.by_label.length ? palette : [cssVar("--surface-3")], borderWidth: 0 }] },
     options: { ...base, cutout: "68%", plugins: { legend: { position: "right", labels: { boxWidth: 10, boxHeight: 10 } } } } }));
+    this.drawHeat(current);
     const en = a.energy;
     $("#en-kwh").textContent = `${en.saved_kwh} kWh`;
     $("#en-cost").textContent = `${en.currency}${en.saved_cost}`;
@@ -1298,6 +1303,43 @@ PAGES.analytics = {
       { label: "Vehicles", data: tl.map((p) => p.vehicles), borderColor: low, tension: 0.35, pointRadius: 0 }] },
     options: { ...base, scales: { x: axes.x, y: { ...axes.y, ticks: {} } } } }));
   },
+};
+
+PAGES.analytics.drawHeat = async function drawHeat(current) {
+  const heat = await api(`/api/heatmap?days=${this.days}`, { quiet: true }).catch(() => null);
+  const canvas = $("#c-heat");
+  if (!heat || !canvas || !current()) return;
+  const width = canvas.parentElement.clientWidth, height = Math.round(width * 9 / 16);
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = width * ratio; canvas.height = height * ratio;
+  canvas.style.width = `${width}px`; canvas.style.height = `${height}px`;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(ratio, ratio);
+  ctx.fillStyle = cssVar("--feed-bg");
+  ctx.fillRect(0, 0, width, height);
+  if (heat.background) {
+    const img = await new Promise((resolve) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = heat.background; });
+    if (img && current()) { ctx.globalAlpha = 0.55; ctx.drawImage(img, 0, 0, width, height); ctx.globalAlpha = 1; }
+  }
+  $("#heat-empty").hidden = heat.peak > 0;
+  if (!heat.peak) return;
+  // one pixel per grid cell, then scaled up with smoothing for a soft heat look
+  const grid = document.createElement("canvas");
+  grid.width = heat.width; grid.height = heat.height;
+  const g = grid.getContext("2d"), cells = g.createImageData(heat.width, heat.height);
+  heat.cells.forEach((count, i) => {
+    const v = Math.sqrt(count / heat.peak); // sqrt so quieter paths still show
+    cells.data[i * 4] = 245 + 10 * v;            // amber -> red
+    cells.data[i * 4 + 1] = 165 - 96 * v;
+    cells.data[i * 4 + 2] = 36 + 33 * v;
+    cells.data[i * 4 + 3] = count ? Math.round(60 + 170 * v) : 0;
+  });
+  g.putImageData(cells, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.filter = "blur(6px)";
+  ctx.drawImage(grid, 0, 0, width, height);
+  ctx.filter = "none";
 };
 
 /* ----------------------------------------------------------------- reports */

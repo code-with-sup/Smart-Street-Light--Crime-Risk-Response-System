@@ -414,3 +414,8 @@ code { font-family: var(--font-mono); font-size: 12px; padding: 1px 6px; border-
 .zone-draw .zd-line { fill: none; stroke: var(--accent); stroke-width: 4; vector-effect: non-scaling-stroke; }
 .zone-draw .zd-dot { fill: var(--accent); stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; }
 #zn-list li { gap: 10px; }
+
+/* activity heatmap */
+.heat-box { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.heat-box canvas { display: block; width: 100%; }
+.heat-empty { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; }

@@ -33,6 +33,9 @@ log = logging.getLogger("sentinel.service")
 
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 METRIC_INTERVAL = 15
+HEAT_W, HEAT_H = 48, 27          # activity heatmap grid (16:9)
+HEAT_BACKGROUND = "heatmap_background.jpg"
+HEAT_BACKGROUND_EVERY = 600      # refresh the heatmap's background picture every 10 min
 STALE_FRAME_SECONDS = 1.5  # camera "running" but no new frame for this long: treat the scene as empty
 PURGE_INTERVAL = 6 * 3600
 RANGES = {
@@ -132,6 +135,10 @@ class Sentinel:
         self._energy = {"t": 0.0, "day": "", "lamp_wh": 0.0, "baseline_wh": 0.0, "night_s": 0.0, "flushed": 0.0}
         self._last_escalation_check = 0.0
         self._energy_today: tuple[float, dict] = (0.0, {})
+        self._heat = [0] * (HEAT_W * HEAT_H)
+        self._heat_day = ""
+        self._heat_flushed = 0.0
+        self._heat_bg_at = 0.0
         self._tamper_events: list[Event] = []
         self._sos_until = 0.0   # SOS keeps risk HIGH until this time (or an operator clears it)
         self._sos_new = False   # a press arrived this tick: always record an incident for it
@@ -158,6 +165,7 @@ class Sentinel:
             self._thread.join(timeout=3)  # so no tick can re-light the lamp after the "off" below
         self.clips.stop()
         self._flush_energy()
+        self._flush_heat()
         self.camera.stop()
         self.hardware.clear_test()
         self.hardware.drive(0, False, people=0, is_night_clock=False)
@@ -266,6 +274,7 @@ class Sentinel:
                 began = time.perf_counter()
                 detections = detector.detect(frame, settings["confidence"], settings["weapon_confidence"])
                 self.inference_ms = (time.perf_counter() - began) * 1000
+                self._add_heat(detections, frame, now)
                 self._tamper_events = self.tamper.update(frame, now) if settings["tamper_detection"] else []
                 last_frame, self._last_fresh = frame_id, now
             elif now - self._last_fresh > STALE_FRAME_SECONDS:
@@ -333,6 +342,41 @@ class Sentinel:
             if removed:
                 self.note("system", f"Removed {removed} incidents older than {settings['evidence_retention_days']} days")
             self._last_purge = now
+
+    # ------------------------------------------------------------- heatmap
+    def _add_heat(self, detections: list[Detection], frame, now: float) -> None:
+        """Count where people's feet are, on a coarse grid; keep a face-blurred background picture."""
+        h, w = frame.shape[:2]
+        day = datetime.fromtimestamp(now, self.tz).strftime("%Y-%m-%d")
+        if self._heat_day and day != self._heat_day:
+            self._flush_heat()
+        self._heat_day = day
+        for d in detections:
+            if d.category == "person":
+                gx = min(HEAT_W - 1, max(0, int((d.box[0] + d.box[2]) / 2 / w * HEAT_W)))
+                gy = min(HEAT_H - 1, max(0, int(d.box[3] / h * HEAT_H)))
+                self._heat[gy * HEAT_W + gx] += 1
+        if now - self._heat_flushed >= 60:
+            self._flush_heat()
+        if now - self._heat_bg_at >= HEAT_BACKGROUND_EVERY:
+            self._heat_bg_at = now
+            cv2.imwrite(str(EVIDENCE_DIR / HEAT_BACKGROUND), blur_faces(frame, detections), [cv2.IMWRITE_JPEG_QUALITY, 75])
+
+    def _flush_heat(self) -> None:
+        if self._heat_day and any(self._heat):
+            self.store.add_heat(self._heat_day, self._heat)
+        self._heat = [0] * (HEAT_W * HEAT_H)
+        self._heat_flushed = time.time()
+
+    def heatmap(self, days: int) -> dict:
+        start = (datetime.now(self.tz) - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+        total = [0] * (HEAT_W * HEAT_H)
+        for cells in [*self.store.heat_since(start), self._heat]:
+            if len(cells) == len(total):
+                total = [a + b for a, b in zip(total, cells, strict=True)]
+        background = EVIDENCE_DIR / HEAT_BACKGROUND
+        return {"width": HEAT_W, "height": HEAT_H, "cells": total, "peak": max(total),
+                "background": f"/evidence/{HEAT_BACKGROUND}?t={int(background.stat().st_mtime)}" if background.exists() else None}
 
     # -------------------------------------------------------------- energy
     def _account_energy(self, now: float) -> None:

@@ -325,6 +325,11 @@ def hardware_test(body: HardwareTest) -> dict:
 
 
 # -------------------------------------------------------- analytics/report
+@app.get("/api/heatmap")
+def heatmap(days: int = Query(7, ge=1, le=90)) -> dict:
+    return sentinel.heatmap(days)
+
+
 @app.get("/api/analytics")
 def analytics(days: int = Query(7, ge=1, le=90)) -> dict:
     return sentinel.analytics(days)
