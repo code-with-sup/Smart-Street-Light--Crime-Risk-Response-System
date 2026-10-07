@@ -213,7 +213,7 @@ Alerts wait for an operator by default because these rules (and any weapon model
 | File | What | Notes |
 |---|---|---|
 | `models/custom/weapon.pt` | **Your trained model**: YOLO26s, classes `person`, `weapon`, 416 px | runs at the size it was trained at |
-| `yolo11n.pt` | COCO model: people, vehicles (+ knife/scissors/bat) with tracking | switch size in Settings → AI model |
+| `yolo11n.pt` (default), `yolo26n.pt`, `yolo26s.pt` | COCO model: people, vehicles (+ knife/scissors/bat) with tracking | pick one in Settings → People & vehicle model (YOLO26 small = same family as the weapon model) |
 | `yolo11n-pose.pt` | body keypoints for the behaviour rules | turn off in Settings → Crime behaviour analysis |
 
 ### How good is the weapon model?

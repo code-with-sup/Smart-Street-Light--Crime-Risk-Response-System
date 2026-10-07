@@ -10,10 +10,10 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from dataclasses import dataclass, field
-
-import re
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -32,6 +32,7 @@ MODELS = {
     "yolo11s": {"label": "YOLO11 small — balanced", "size_mb": 19},
     "yolo11m": {"label": "YOLO11 medium — most accurate", "size_mb": 39},
     "yolo26n": {"label": "YOLO26 nano — newest, fast", "size_mb": 6},
+    "yolo26s": {"label": "YOLO26 small — same family as the weapon model", "size_mb": 20},
 }
 DEFAULT_MODEL = "yolo11n"
 POSE_MODEL = "yolo11n-pose"
@@ -97,7 +98,11 @@ class _CustomModel:
     def __init__(self, yolo, label: str) -> None:
         self.yolo, self.label = yolo, label
         args = getattr(yolo, "ckpt", None) or {}
-        self.imgsz = int((args.get("train_args") or {}).get("imgsz") or 640)  # predict at the trained size
+        train = args.get("train_args") or {}
+        self.imgsz = int(train.get("imgsz") or 640)  # predict at the trained size
+        base = Path(str(train.get("model") or "")).stem  # e.g. yolo26s, the model it was trained from
+        if base:
+            self.label = f"{label} ({base})"
         self.classes = {i: c for i, n in yolo.names.items() if (c := category_for(n))}
 
 
