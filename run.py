@@ -44,10 +44,20 @@ def ensure_camera_permission() -> None:
     import cv2
 
     print("Checking camera access (macOS may ask you to allow it)…")
-    capture = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-    granted = capture.isOpened() and capture.read()[0]
-    capture.release()
-    if not granted:
+    # The first try only *sends* the request; macOS shows its prompt while we keep trying, so give the
+    # person time to click Allow before the server starts.
+    deadline = time.monotonic() + 30
+    while True:
+        capture = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+        granted = capture.isOpened() and capture.read()[0]
+        capture.release()
+        if granted or time.monotonic() > deadline:
+            break
+        print("Waiting for camera access: click Allow if macOS asks (up to 30 s)…", flush=True)
+        time.sleep(2)
+    if granted:
+        print("Camera access OK")
+    else:
         print("Camera not available yet. If you denied access, allow it in System Settings > "
               "Privacy & Security > Camera for the app running this terminal, then restart.")
 
