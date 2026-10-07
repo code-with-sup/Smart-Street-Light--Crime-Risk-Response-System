@@ -1,0 +1,99 @@
+/* Sentinel Street design tokens — shared by the landing page and the dashboard.
+   Identity: sodium-vapour street-light amber on warm graphite. Risk colours are reserved
+   for risk: green = LOW, orange = MEDIUM, red = HIGH. Type: Geist (UI), Geist Mono (live numbers only), Instrument Serif (display accents). */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap");
+
+:root, [data-theme="dark"] {
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --bg: #0E0E0D;
+  --surface: #151514;
+  --surface-2: #1B1B19;
+  --surface-3: #252421;
+  --border: #2A2926;
+  --border-strong: #3B3934;
+  --text: #EEEBE5;
+  --muted: #A9A49B;
+  --faint: #78736A;
+  --accent: #F5A524;          /* sodium street-light amber */
+  --accent-strong: #FFB83F;
+  --accent-ink: #1C1305;      /* text on amber */
+  --accent-soft: rgba(245, 165, 36, .12);
+  --accent-line: rgba(245, 165, 36, .35);
+  --data: #6CC4D6;            /* secondary data colour (people, charts) */
+  --data-soft: rgba(108, 196, 214, .13);
+  --low: #4CC38A;
+  --low-soft: rgba(76, 195, 138, .13);
+  --medium: #FF8A3D;
+  --medium-soft: rgba(255, 138, 61, .14);
+  --high: #FF4545;
+  --high-soft: rgba(255, 69, 69, .15);
+  --shadow: 0 1px 0 rgba(255, 255, 255, .025) inset, 0 18px 40px -24px rgba(0, 0, 0, .9);
+  --feed-bg: #070707;
+
+  --scene-sky-top: #05070B;
+  --scene-sky-bottom: #161A22;
+  --scene-far: #0D1016;
+  --scene-window: #F5A524;
+  --scene-ground: #0B0C0E;
+  --scene-curb: #1F2126;
+  --scene-lane: #2A2C31;
+  --scene-pole: #33353B;
+  --scene-head: #46484F;
+  --scene-person: #050608;
+  --det-person: #6CC4D6;
+  --det-weapon: #FF4545;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #F4F2ED;
+  --surface: #FFFFFF;
+  --surface-2: #F8F6F2;
+  --surface-3: #ECE8E0;
+  --border: #E2DDD3;
+  --border-strong: #CFC8BB;
+  --text: #1A1916;
+  --muted: #5C574E;
+  --faint: #8C867B;
+  --accent: #B8680A;
+  --accent-strong: #9A5606;
+  --accent-ink: #FFFFFF;
+  --accent-soft: rgba(184, 104, 10, .09);
+  --accent-line: rgba(184, 104, 10, .35);
+  --data: #1F7E92;
+  --data-soft: rgba(31, 126, 146, .10);
+  --low: #1E8A57;
+  --low-soft: rgba(30, 138, 87, .10);
+  --medium: #C75A12;
+  --medium-soft: rgba(199, 90, 18, .10);
+  --high: #D42A2A;
+  --high-soft: rgba(212, 42, 42, .09);
+  --shadow: 0 1px 2px rgba(40, 30, 10, .05), 0 14px 30px -22px rgba(40, 30, 10, .35);
+  --feed-bg: #101112;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.mono, .num { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
+.label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+.scene { display: block; width: 100%; height: 100%; }
+.scene .lamp-light { transition: opacity .9s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
