@@ -36,13 +36,10 @@ def open_dashboard(url: str) -> None:
 
 def ensure_camera_permission() -> None:
     """macOS shows the camera permission prompt only from the main thread, but the server opens the
-    camera from a worker thread. Ask once here, before the server starts, so the prompt can appear."""
+    camera from a worker thread. Ask here on every start, before the server starts, so the prompt can
+    appear: permission belongs to the terminal app that runs this, not to the project, so a remembered
+    "granted" would be wrong as soon as it is started from a different terminal."""
     if sys.platform != "darwin" or os.environ.get("SENTINEL_VIDEO"):
-        return
-    from sentinel.config import DATA_DIR
-
-    marker = DATA_DIR / ".camera-permission-granted"
-    if marker.exists():
         return
     import cv2
 
@@ -50,10 +47,7 @@ def ensure_camera_permission() -> None:
     capture = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
     granted = capture.isOpened() and capture.read()[0]
     capture.release()
-    if granted:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        marker.write_text("ok\n")
-    else:
+    if not granted:
         print("Camera not available yet. If you denied access, allow it in System Settings > "
               "Privacy & Security > Camera for the app running this terminal, then restart.")
 
