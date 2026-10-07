@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentinel Street</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23F5A524'/%3E%3Cpath d='M11 26h10M16 26V13c0-4 3-6 6-6h1M20 7h7l-1 3h-5z' stroke='%231C1305' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/static/app.css">
+  <script>
+    try { const t = localStorage.getItem("sentinel-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="/" title="About Sentinel Street">
+        <div class="brand-mark"><svg viewBox="0 0 24 24"><path d="M7 22h8"/><path d="M11 22V9c0-3 2-5 5-5h1"/><path d="M15 4h6l-1 3h-4z"/></svg></div>
+        <div>
+          <div class="brand-name">Sentinel Street</div>
+          <div class="brand-sub">Control room</div>
+        </div>
+      </a>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-foot">
+        <div class="sys" id="sys-status">
+          <span class="dot"></span>
+          <div><div class="sys-title">Connecting…</div><div class="sys-sub">Local server</div></div>
+        </div>
+        <div class="theme-switch" role="group" aria-label="Theme">
+          <button data-theme-set="light" title="Day theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>Day</button>
+          <button data-theme-set="dark" title="Night theme"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Night</button>
+        </div>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menu-btn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <div class="page-head">
+          <h1 id="page-title">Overview</h1>
+          <p id="page-sub"></p>
+        </div>
+        <div class="top-right">
+          <div class="risk-pill" id="risk-pill" data-level="LOW"><span class="dot"></span><span>LOW RISK</span></div>
+          <a class="clock" href="#settings" id="clock" title="Change time zone">
+            <div class="clock-time" id="clock-time">--:--</div>
+            <div class="clock-zone" id="clock-zone">—</div>
+          </a>
+        </div>
+      </header>
+      <section class="page" id="page"></section>
+    </main>
+  </div>
+  <div class="alarm-edge" aria-hidden="true"></div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <div class="modal" id="modal" hidden></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/scene.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

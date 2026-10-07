@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentinel Street</title>
+  <meta name="description" content="An AI street light that sees risk, lights the street, sounds the alarm and records evidence — processed on the device.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23F5A524'/%3E%3Cpath d='M11 26h10M16 26V13c0-4 3-6 6-6h1M20 7h7l-1 3h-5z' stroke='%231C1305' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="/static/landing.css">
+  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+  <header class="lnav" id="lnav">
+    <a class="lbrand" href="/">
+      <span class="lmark"><svg viewBox="0 0 24 24"><path d="M7 22h8"/><path d="M11 22V9c0-3 2-5 5-5h1"/><path d="M15 4h6l-1 3h-4z"/></svg></span>
+      Sentinel Street
+    </a>
+    <nav class="llinks">
+      <a href="#how">How it works</a>
+      <a href="#levels">Risk levels</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#trust">Safety</a>
+    </nav>
+    <a class="lbtn primary sm" href="/app">Open control room</a>
+  </header>
+
+  <section class="hero" id="hero">
+    <canvas id="hero3d" aria-hidden="true"></canvas>
+    <div id="hero2d" class="hero2d" hidden></div>
+    <div class="hero-shade"></div>
+    <div class="det-box" id="det-person" hidden><span>PERSON 92%</span></div>
+    <div class="det-box weapon" id="det-knife" hidden><span>KNIFE 81%</span></div>
+
+    <div class="hero-copy">
+      <div class="eyebrow">AI street light · crime-risk response</div>
+      <h1>The street light<br>that <em>sees</em> trouble.</h1>
+      <p>Sentinel watches the street through a camera, judges the risk every fraction of a second,
+        and answers with light, sound and an alert. The video never leaves the device.</p>
+      <div class="hero-cta">
+        <a class="lbtn primary" href="/app">Open the control room <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        <a class="lbtn ghost" href="#how">See how it works</a>
+      </div>
+    </div>
+
+    <aside class="hero-hud" id="hero-hud" data-level="LOW" aria-label="Demo: live risk readout">
+      <div class="hud-row"><span class="k">Risk</span><span class="lvl" id="hud-level">LOW</span></div>
+      <div class="hud-bars"><i></i><i></i><i></i></div>
+      <div class="hud-row"><span class="k">Light</span><span class="v" id="hud-light">20%</span></div>
+      <div class="hud-row"><span class="k">Buzzer</span><span class="v" id="hud-buzzer">OFF</span></div>
+      <div class="hud-log" id="hud-log">Street clear · light dimmed to save energy</div>
+    </aside>
+    <a class="scroll-cue" href="#facts" aria-label="Scroll down"><span></span></a>
+  </section>
+
+  <section class="facts" id="facts">
+    <div class="fact reveal"><b class="count" data-to="30" data-suffix=" ms">0</b><span>to analyse a frame on a laptop GPU</span></div>
+    <div class="fact reveal"><b>3</b><span>risk levels, each with its own response</span></div>
+    <div class="fact reveal"><b>0</b><span>video frames uploaded anywhere</span></div>
+    <div class="fact reveal"><b class="count" data-to="5" data-suffix=" s">0</b><span>until the lamp runs on its own if the link drops</span></div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="section-head reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>See. Judge. Respond. <em>Record.</em></h2>
+      <p>One loop runs several times a second, from the camera to the lamp and back.</p>
+    </div>
+    <ol class="steps">
+      <li class="step reveal"><span class="step-n">01</span><h3>See</h3><p>A USB camera feeds YOLO11, which finds people, vehicles, knives, scissors and bats in each frame.</p></li>
+      <li class="step reveal"><span class="step-n">02</span><h3>Judge</h3><p>The risk engine weighs what it sees with the time of day, PIR motion and the light sensor, and settles on LOW, MEDIUM or HIGH.</p></li>
+      <li class="step reveal"><span class="step-n">03</span><h3>Respond</h3><p>An ESP32 dims or floods the street light and sounds the buzzer, within a heartbeat of the decision.</p></li>
+      <li class="step reveal"><span class="step-n">04</span><h3>Record</h3><p>Every escalation is saved with a snapshot, a location and the reasons, ready to review, report or send.</p></li>
+    </ol>
+  </section>
+
+  <section class="section" id="levels">
+    <div class="section-head reveal">
+      <div class="eyebrow">Risk levels</div>
+      <h2>Three levels. <em>Three responses.</em></h2>
+      <p>Clear rules, every one adjustable in Settings. A weapon has to be seen twice before the alarm sounds.</p>
+    </div>
+    <div class="levels">
+      <article class="level LOW reveal">
+        <div class="level-lamp" style="--glow:.25"><i></i></div>
+        <div class="level-tag">LOW</div>
+        <h3>Street clear</h3>
+        <p>Nobody around. The lamp dims to 20% at night and switches off by day.</p>
+        <ul><li>Light 20% · night</li><li>Buzzer off</li></ul>
+      </article>
+      <article class="level MEDIUM reveal">
+        <div class="level-lamp" style="--glow:1"><i></i></div>
+        <div class="level-tag">MEDIUM</div>
+        <h3>Someone's here</h3>
+        <p>A person or motion at night, a crowd, or someone lingering. Full light, event recorded.</p>
+        <ul><li>Light 100%</li><li>Incident + snapshot</li></ul>
+      </article>
+      <article class="level HIGH reveal">
+        <div class="level-lamp alarm" style="--glow:1"><i></i></div>
+        <div class="level-tag">HIGH</div>
+        <h3>Weapon seen</h3>
+        <p>A weapon confirmed across frames. Full light, buzzer on, evidence saved, contacts alerted.</p>
+        <ul><li>Light 100% · buzzer on</li><li>Alert to contacts</li></ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section split" id="hardware">
+    <div class="reveal">
+      <div class="eyebrow">Hardware</div>
+      <h2>A real lamp, <em>not a mock-up.</em></h2>
+      <p>An ESP32 drives the light with PWM dimming and the buzzer, and reports PIR motion and LDR light
+        levels twice a second over USB. If the dashboard goes quiet for five seconds, the lamp keeps
+        working on its own sensors.</p>
+      <table class="pins">
+        <tr><td>Street light LED</td><td>GPIO 25</td><td>PWM</td></tr>
+        <tr><td>Piezo buzzer</td><td>GPIO 26</td><td>out</td></tr>
+        <tr><td>PIR motion</td><td>GPIO 27</td><td>in</td></tr>
+        <tr><td>LDR light level</td><td>GPIO 34</td><td>ADC</td></tr>
+      </table>
+    </div>
+    <div class="board reveal" aria-hidden="true">
+      <svg viewBox="0 0 360 300">
+        <rect x="110" y="40" width="140" height="220" rx="8" fill="#14171c" stroke="#2b2f36"/>
+        <rect x="140" y="60" width="80" height="56" rx="3" fill="#20242b" stroke="#3a3f47"/>
+        <text x="180" y="93" text-anchor="middle" font-family="Geist Mono" font-size="11" fill="#77726a">ESP32</text>
+        <rect x="160" y="236" width="40" height="18" rx="2" fill="#2a2d33"/>
+        <g fill="#5b5850"><rect x="104" y="60" width="8" height="6" rx="1"/><rect x="248" y="60" width="8" height="6" rx="1"/><rect x="104" y="74" width="8" height="6" rx="1"/><rect x="248" y="74" width="8" height="6" rx="1"/><rect x="104" y="88" width="8" height="6" rx="1"/><rect x="248" y="88" width="8" height="6" rx="1"/><rect x="104" y="102" width="8" height="6" rx="1"/><rect x="248" y="102" width="8" height="6" rx="1"/><rect x="104" y="116" width="8" height="6" rx="1"/><rect x="248" y="116" width="8" height="6" rx="1"/><rect x="104" y="130" width="8" height="6" rx="1"/><rect x="248" y="130" width="8" height="6" rx="1"/><rect x="104" y="144" width="8" height="6" rx="1"/><rect x="248" y="144" width="8" height="6" rx="1"/><rect x="104" y="158" width="8" height="6" rx="1"/><rect x="248" y="158" width="8" height="6" rx="1"/><rect x="104" y="172" width="8" height="6" rx="1"/><rect x="248" y="172" width="8" height="6" rx="1"/><rect x="104" y="186" width="8" height="6" rx="1"/><rect x="248" y="186" width="8" height="6" rx="1"/><rect x="104" y="200" width="8" height="6" rx="1"/><rect x="248" y="200" width="8" height="6" rx="1"/><rect x="104" y="214" width="8" height="6" rx="1"/><rect x="248" y="214" width="8" height="6" rx="1"/><rect x="104" y="228" width="8" height="6" rx="1"/><rect x="248" y="228" width="8" height="6" rx="1"/><rect x="104" y="242" width="8" height="6" rx="1"/><rect x="248" y="242" width="8" height="6" rx="1"/></g>
+        <g class="wire" stroke="#F5A524"><path d="M110 140 H60 V80 H30"/><circle cx="30" cy="80" r="5" fill="#F5A524"/></g>
+        <g class="wire" stroke="#FF4545"><path d="M110 165 H48 V130 H30"/><circle cx="30" cy="130" r="5" fill="#FF4545"/></g>
+        <g class="wire" stroke="#6CC4D6"><path d="M250 140 H300 V80 H330"/><circle cx="330" cy="80" r="5" fill="#6CC4D6"/></g>
+        <g class="wire" stroke="#4CC38A"><path d="M250 165 H312 V130 H330"/><circle cx="330" cy="130" r="5" fill="#4CC38A"/></g>
+        <g font-family="Geist Mono" font-size="10" fill="#A9A49B">
+          <text x="24" y="66" text-anchor="start">LIGHT</text><text x="24" y="150">BUZZER</text>
+          <text x="336" y="66" text-anchor="end">PIR</text><text x="336" y="150" text-anchor="end">LDR</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section class="section" id="trust">
+    <div class="section-head reveal">
+      <div class="eyebrow">Responsible by design</div>
+      <h2>Fast to react. <em>Careful to accuse.</em></h2>
+      <p>A camera on a street is a serious thing. These are on by default.</p>
+    </div>
+    <div class="trust">
+      <div class="trust-item reveal"><h3>A person confirms the alert</h3><p>AI can mistake a phone for a knife. HIGH incidents wait for an operator before anyone is messaged, unless you choose automatic.</p></div>
+      <div class="trust-item reveal"><h3>Video stays on the device</h3><p>Detection runs locally and the dashboard listens only on this computer. Only an alert you send leaves it.</p></div>
+      <div class="trust-item reveal"><h3>Evidence expires</h3><p>Snapshots and records are deleted after 30 days by default, so footage isn't kept longer than it's useful.</p></div>
+      <div class="trust-item reveal"><h3>Every decision is explained</h3><p>Each incident keeps the reasons it was raised, so a review starts from facts, not a score.</p></div>
+    </div>
+  </section>
+
+  <section class="final reveal">
+    <div class="final-glow"></div>
+    <h2>Turn the light <em>on.</em></h2>
+    <p>Start the camera, connect the lamp, and watch the street from the control room.</p>
+    <a class="lbtn primary" href="/app">Open the control room <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+  </section>
+
+  <footer class="lfoot">
+    <span>Sentinel Street · AI smart street light</span>
+    <span class="mono">Python · YOLO11 · three.js · ESP32</span>
+  </footer>
+
+  <script src="/static/scene.js"></script>
+  <script type="module" src="/static/landing.js"></script>
+</body>
+</html>

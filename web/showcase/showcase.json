@@ -1,0 +1,74 @@
+[
+ {
+  "file": "01.jpg",
+  "confidence": 0.74,
+  "kind": "rifle",
+  "scene": "Night street"
+ },
+ {
+  "file": "02.jpg",
+  "confidence": 0.72,
+  "kind": "pistol",
+  "scene": "Indoor CCTV"
+ },
+ {
+  "file": "03.jpg",
+  "confidence": 0.76,
+  "kind": "knife",
+  "scene": "Outdoors"
+ },
+ {
+  "file": "04.jpg",
+  "confidence": 0.73,
+  "kind": "pistol",
+  "scene": "Park"
+ },
+ {
+  "file": "05.jpg",
+  "confidence": 0.78,
+  "kind": "knife",
+  "scene": "Close quarters"
+ },
+ {
+  "file": "06.jpg",
+  "confidence": 0.78,
+  "kind": "rifle",
+  "scene": "Open ground"
+ },
+ {
+  "file": "07.jpg",
+  "confidence": 0.76,
+  "kind": "knife",
+  "scene": "Struggle"
+ },
+ {
+  "file": "08.jpg",
+  "confidence": 0.71,
+  "kind": "pistol",
+  "scene": "Footpath"
+ },
+ {
+  "file": "09.jpg",
+  "confidence": 0.75,
+  "kind": "knife",
+  "scene": "Indoors"
+ },
+ {
+  "file": "10.jpg",
+  "confidence": 0.78,
+  "kind": "knife",
+  "scene": "Attack"
+ },
+ {
+  "file": "11.jpg",
+  "confidence": 0.8,
+  "kind": "rifle",
+  "scene": "Ground level"
+ },
+ {
+  "file": "12.jpg",
+  "confidence": 0.76,
+  "kind": "knife",
+  "scene": "Face-off"
+ }
+]

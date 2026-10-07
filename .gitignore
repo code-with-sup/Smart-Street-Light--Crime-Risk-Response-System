@@ -1,0 +1,28 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv-*/
+build/
+dist/
+*.spec
+
+# Runtime data: incident database and evidence snapshots (may show real people)
+data/
+
+# Training outputs
+runs/
+
+# IDE / OS
+.idea/
+.DS_Store
+
+# Larger YOLO weights are downloaded on demand from Settings (yolo11n/yolo26n stay in the repo)
+yolo11s.pt
+yolo11m.pt
+
+# Local Claude Code / editor tooling
+.claude/
