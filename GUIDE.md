@@ -122,7 +122,7 @@ Mark false alarms in Incident review: it keeps the analytics honest and the repl
 ```mermaid
 flowchart LR
     CAM[Webcam / video] --> CAP[camera.py<br/>capture thread]
-    CAP --> DET[detection.py<br/>YOLO11 tracking<br/>weapon.pt<br/>pose]
+    CAP --> DET[detection.py<br/>YOLO11 tracking<br/>weapon.pt + crime.pt<br/>pose]
     DET --> BEH[behavior.py<br/>fight · person down<br/>hands up · running]
     DET --> RISK[risk.py<br/>LOW / MEDIUM / HIGH]
     BEH --> RISK
@@ -140,7 +140,7 @@ flowchart LR
 
 1. Take the newest camera frame.
 2. **Detect** (`detection.py`): YOLO11 finds people and vehicles and gives each person a tracking ID;
-   `weapon.pt` finds weapons; the pose model adds 17 body points to each person.
+   `weapon.pt` finds weapons, `crime.pt` finds violence / fights / robbery; the pose model adds 17 body points to each person.
 3. **Behaviour** (`behavior.py`): looks at the last few seconds of each tracked person and flags
    crime cues (rules below).
 4. **Risk** (`risk.py`): combines detections, behaviour, night/day and PIR motion into LOW / MEDIUM / HIGH.
@@ -213,6 +213,7 @@ Alerts wait for an operator by default because these rules (and any weapon model
 | File | What | Notes |
 |---|---|---|
 | `models/custom/weapon.pt` | **Your trained model**: YOLO26s, classes `person`, `weapon`, 416 px | runs at the size it was trained at |
+| `models/custom/crime.pt` | **Crime model**: Violence, violent, fight, Robbery Using Gun (crime → HIGH), Gun, Man Holding Gun, knifes (weapon), No Fight (green, never an alarm), Bystander (ignored); 448 px | crime classes use Settings → **Crime confidence** (default 65 %); scores in `models/custom/README.txt` |
 | `yolo11n.pt` (default), `yolo26n.pt`, `yolo26s.pt` | COCO model: people, vehicles (+ knife/scissors/bat) with tracking | pick one in Settings → People & vehicle model (YOLO26 small = same family as the weapon model) |
 | `yolo11n-pose.pt` | body keypoints for the behaviour rules | turn off in Settings → Crime behaviour analysis |
 

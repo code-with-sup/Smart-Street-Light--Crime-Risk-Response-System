@@ -31,6 +31,7 @@ DEFAULT_SETTINGS: dict = {
     "mirror": False,
     "confidence": 0.40,
     "weapon_confidence": 0.55,  # tuned on the weapon model's test split (see models/custom/README.txt)
+    "crime_confidence": 0.65,   # crime classes (violence, fight, robbery) of custom models; tuned on crime.pt's test split
     "behaviour_analysis": True,
     "tamper_detection": True,
     "blur_faces": "off",        # off | live (operator screen only; evidence keeps faces) | everywhere   # camera covered / blurred / turned away  # pose-based crime cues: fight, person down, hands up, running

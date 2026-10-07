@@ -606,6 +606,9 @@ PAGES.live = {
               <div class="field"><label for="lv-wconf">Weapon confidence</label>
                 <div class="range-row"><input type="range" id="lv-wconf" min="0.05" max="0.95" step="0.05" value="${s.weapon_confidence}" data-live="weapon_confidence"><output>${pct(s.weapon_confidence)}</output></div>
                 <div class="hint">Higher = fewer false alarms, but may miss real weapons.</div></div>
+              <div class="field"><label for="lv-cconf">Crime confidence</label>
+                <div class="range-row"><input type="range" id="lv-cconf" min="0.05" max="0.95" step="0.05" value="${s.crime_confidence}" data-live="crime_confidence"><output>${pct(s.crime_confidence)}</output></div>
+                <div class="hint">Violence, fight, robbery. Higher = fewer false alarms.</div></div>
             </div>
           </div>
           <div class="card">
@@ -800,7 +803,7 @@ PAGES.live = {
     $("#lv-ms").textContent = d.camera.running && det.ready ? `${det.inference_ms} ms` : "—";
     $("#lv-dev").textContent = det.device ? det.device.toUpperCase() : "—";
     $("#lv-count").textContent = d.camera.running ? `${d.counts.person} people · ${d.counts.vehicle} vehicles · ${d.counts.weapon} weapons` : "Camera off";
-    const colors = { person: "var(--data)", vehicle: "var(--low)", weapon: "var(--high)", event: "var(--medium)" };
+    const colors = { person: "var(--data)", vehicle: "var(--low)", weapon: "var(--high)", event: "var(--medium)", calm: "var(--low)" };
     const events = (d.events || []).map((e) => `<li style="border:1px solid ${e.severity === "HIGH" ? "var(--high)" : "var(--medium)"}">
       <span class="det-swatch" style="background:${e.severity === "HIGH" ? "var(--high)" : "var(--medium)"}"></span>
       <span class="strong">${esc(e.label)}</span><span class="conf">${e.severity}</span></li>`).join("");
@@ -1420,6 +1423,7 @@ PAGES.settings = {
           <div class="hint" id="s-model-hint">Bigger models spot small objects like knives better but run slower.</div></div>
         ${range("confidence", "People & vehicle confidence", 0.05, 0.95, 0.05, true)}
         ${range("weapon_confidence", "Weapon confidence", 0.05, 0.95, 0.05, true, "Higher = fewer false alarms")}
+        ${range("crime_confidence", "Crime confidence", 0.05, 0.95, 0.05, true, "Violence, fight, robbery. Higher = fewer false alarms")}
         ${num("detect_interval_ms", "Detection interval (ms)", "Lower = faster reaction, more CPU", 'min="50" max="2000" step="50"')}
         ${num("camera_index", "Camera number", "0 = built-in, 1+ = USB webcams", 'min="0" max="9"')}
         <div class="field"><label for="s-mirror">Mirror image</label><label class="toggle"><input type="checkbox" id="s-mirror" data-key="mirror" ${s.mirror ? "checked" : ""}><span></span></label></div>

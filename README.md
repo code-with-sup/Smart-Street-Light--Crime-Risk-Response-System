@@ -51,6 +51,7 @@ No webcam? Play a video as the camera: `run.py --video street.mp4`.
 
 - 🎥 Live camera with AI boxes, person tracking IDs and pose skeletons
 - 🔫 Weapon detection with the trained model `models/custom/weapon.pt` (YOLO26s)
+- 🥊 Crime detection with the trained model `models/custom/crime.pt`: violence, fight, robbery with a gun ("No Fight" shown in green)
 - 🧍 Crime-behaviour cues from body pose: possible fight, person down, possible robbery, people running
 - 📊 LOW / MEDIUM / HIGH risk with clear reasons ("Weapon detected (68 %)", "Person #3 lingering 64 s")
 - 💡 Lamp brightness and 🚨 buzzer driven over USB serial to the ESP32 (or a built-in simulator)
@@ -81,7 +82,7 @@ No webcam? Play a video as the camera: `run.py --video street.mp4`.
 run.py           start the server (and open the browser)
 sentinel/        the Python service: camera, detection, behaviour, risk, hardware, alerts, storage, API
 web/             dashboard (/app) and landing page (/)
-models/custom/   trained models dropped here load automatically (weapon.pt)
+models/custom/   trained models dropped here load automatically (weapon.pt, crime.pt)
 firmware/        ESP32 sketch
 tests/           automated tests (pip install -r requirements-dev.txt, then pytest)
 GUIDE.md         full guide: setup, how it works, ESP32, alerts, retraining, troubleshooting

@@ -23,7 +23,7 @@ class FakeDetector:
     def __init__(self):
         self.output = []
 
-    def detect(self, frame, confidence, weapon_confidence):
+    def detect(self, frame, confidence, weapon_confidence, crime_confidence=0.65):
         return list(self.output)
 
     def reset_tracks(self):

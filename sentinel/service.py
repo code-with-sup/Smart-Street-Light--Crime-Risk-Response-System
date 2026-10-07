@@ -39,7 +39,7 @@ HEAT_BACKGROUND_EVERY = 600      # refresh the heatmap's background picture ever
 STALE_FRAME_SECONDS = 1.5  # camera "running" but no new frame for this long: treat the scene as empty
 PURGE_INTERVAL = 6 * 3600
 RANGES = {
-    "confidence": (0.05, 0.95), "weapon_confidence": (0.05, 0.95), "detect_interval_ms": (50, 2000),
+    "confidence": (0.05, 0.95), "weapon_confidence": (0.05, 0.95), "crime_confidence": (0.05, 0.95), "detect_interval_ms": (50, 2000),
     "ldr_dark_threshold": (0, 4095), "crowd_threshold": (2, 100), "loiter_seconds": (5, 3600),
     "low_brightness": (0, 100), "alert_cooldown_s": (0, 3600), "incident_cooldown_s": (5, 3600),
     "evidence_retention_days": (1, 365), "camera_index": (0, 9), "sos_hold_s": (10, 600),
@@ -272,7 +272,8 @@ class Sentinel:
         if self.camera.running and frame is not None and detector and detector.ready:
             if frame_id != last_frame:
                 began = time.perf_counter()
-                detections = detector.detect(frame, settings["confidence"], settings["weapon_confidence"])
+                detections = detector.detect(frame, settings["confidence"], settings["weapon_confidence"],
+                                             settings["crime_confidence"])
                 self.inference_ms = (time.perf_counter() - began) * 1000
                 self._add_heat(detections, frame, now)
                 self._tamper_events = self.tamper.update(frame, now) if settings["tamper_detection"] else []

@@ -41,10 +41,14 @@ POSE_MODEL = "yolo11n-pose"
 WEAPON_WORDS = re.compile(r"gun|pistol|rifle|revolver|firearm|shotgun|shot-gun|smg|knife|dagger|blade|sword|machete|"
                           r"axe|weapon|blunt|grenade|bat\b(?!.*animal)", re.I)
 EVENT_WORDS = re.compile(r"fight|violen|assault|robber|theft|steal|snatch|vandal|attack|punch|kick|shoot|fall", re.I)
+# "No Fight", "Non-Violence", "normal": shown on the video as calm, never raise the risk
+CALM_WORDS = re.compile(r"^(no|non|not)\b|^non-?|normal", re.I)
 
 
 def category_for(name: str) -> str | None:
-    """weapon / event for a custom-model class name, or None to ignore it (e.g. person)."""
+    """weapon / event / calm for a custom-model class name, or None to ignore it (e.g. person, bystander)."""
+    if CALM_WORDS.search(name.strip()):
+        return "calm"
     if EVENT_WORDS.search(name):
         return "event"
     if WEAPON_WORDS.search(name):
@@ -56,7 +60,8 @@ def category_for(name: str) -> str | None:
 GPU_LOCK = threading.Lock()
 
 # OpenCV colours are BGR.
-COLORS = {"person": (255, 170, 60), "vehicle": (120, 210, 40), "weapon": (40, 40, 235), "event": (0, 140, 255)}
+COLORS = {"person": (255, 170, 60), "vehicle": (120, 210, 40), "weapon": (40, 40, 235), "event": (0, 140, 255),
+          "calm": (90, 190, 90)}
 SKELETON = ((5, 7), (7, 9), (6, 8), (8, 10), (5, 6), (5, 11), (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16))
 
 
@@ -101,7 +106,7 @@ class _CustomModel:
         train = args.get("train_args") or {}
         self.imgsz = int(train.get("imgsz") or 640)  # predict at the trained size
         base = Path(str(train.get("model") or "")).stem  # e.g. yolo26s, the model it was trained from
-        if base:
+        if base.startswith("yolo"):
             self.label = f"{label} ({base})"
         self.classes = {i: c for i, n in yolo.names.items() if (c := category_for(n))}
 
@@ -182,7 +187,7 @@ class Detector:
             for tracker in predictor.trackers:
                 tracker.reset()
 
-    def detect(self, frame, confidence: float, weapon_confidence: float) -> list[Detection]:
+    def detect(self, frame, confidence: float, weapon_confidence: float, crime_confidence: float = 0.65) -> list[Detection]:
         if not self.ready:
             return []
         found: list[Detection] = []
@@ -193,7 +198,7 @@ class Detector:
                 results = self._generic.track(frame, persist=True, tracker="bytetrack.yaml", **options)
             else:
                 results = self._generic.predict(frame, **options)
-            custom = [c.yolo.predict(frame, conf=weapon_confidence, imgsz=c.imgsz, classes=list(c.classes),
+            custom = [c.yolo.predict(frame, conf=min(weapon_confidence, crime_confidence), imgsz=c.imgsz, classes=list(c.classes),
                                      device=self.device, verbose=False) for c in self._custom]
         for result in results:
             ids = result.boxes.id.int().tolist() if result.boxes.id is not None else [None] * len(result.boxes)
@@ -213,9 +218,12 @@ class Detector:
         for model, model_results in zip(self._custom, custom, strict=True):
             for result in model_results:
                 for box in result.boxes:
-                    cls = int(box.cls[0])
+                    cls, score = int(box.cls[0]), float(box.conf[0])
+                    category = model.classes[cls]
+                    if score < (weapon_confidence if category == "weapon" else crime_confidence):
+                        continue
                     found.append(Detection(tuple(map(int, box.xyxy[0].tolist())), model.yolo.names[cls],
-                                           float(box.conf[0]), model.classes[cls], source=model.label))
+                                           score, category, source=model.label))
         people = [d for d in found if d.category == "person"]
         if self._pose is not None and people:
             self._attach_pose(frame, people, confidence)

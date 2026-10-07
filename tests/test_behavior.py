@@ -1,6 +1,7 @@
 """Crime-behaviour rules (synthetic poses) and how events drive the risk level."""
 
 import numpy as np
+import pytest
 
 from sentinel.behavior import BehaviorAnalyzer, Event
 from sentinel.config import DEFAULT_SETTINGS
@@ -109,6 +110,22 @@ def test_custom_class_names_map_to_categories():
     assert category_for("Fighting") == "event"
     assert category_for("person") is None
     assert category_for("Bat (Animal)") is None
+
+
+@pytest.mark.parametrize("name,category", [  # the crime model's classes, names exactly as trained
+    ("Violence", "event"), ("violent", "event"), ("fight", "event"), ("Robbery Using Gun", "event"),
+    ("Gun", "weapon"), ("Man Holding Gun", "weapon"), ("knifes", "weapon"),
+    ("No Fight", "calm"), ("Non-Violence", "calm"), ("Bystander", None),
+])
+def test_crime_model_classes(name, category):
+    assert category_for(name) == category
+
+
+def test_calm_detections_never_raise_risk():
+    calm = Detection((0, 0, 100, 200), "No Fight", 0.95, "calm")
+    engine = RiskEngine()
+    for t in range(5):
+        assert engine.evaluate([calm], is_night=False, motion=False, settings=SETTINGS, now=1000 + t).level == "LOW"
 
 
 def test_seated_close_up_at_a_webcam_is_not_person_down():
