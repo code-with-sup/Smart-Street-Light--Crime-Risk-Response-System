@@ -32,7 +32,8 @@ DEFAULT_SETTINGS: dict = {
     "confidence": 0.40,
     "weapon_confidence": 0.55,  # tuned on the weapon model's test split (see models/custom/README.txt)
     "behaviour_analysis": True,
-    "tamper_detection": True,   # camera covered / blurred / turned away  # pose-based crime cues: fight, person down, hands up, running
+    "tamper_detection": True,
+    "blur_faces": "off",        # off | live (operator screen only; evidence keeps faces) | everywhere   # camera covered / blurred / turned away  # pose-based crime cues: fight, person down, hands up, running
     "detect_interval_ms": 250,
     "night_start": "18:30",
     "night_end": "06:00",

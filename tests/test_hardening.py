@@ -6,13 +6,12 @@ import time
 
 import numpy as np
 import pytest
-from fastapi.testclient import TestClient
 
 from sentinel import camera as camera_mod
 from sentinel.config import DEFAULT_SETTINGS
 from sentinel.detection import Detection
 from sentinel.risk import RiskEngine
-from sentinel.service import Sentinel, SettingsError, _coerce
+from sentinel.service import SettingsError, _coerce
 
 SETTINGS = dict(DEFAULT_SETTINGS)
 FRAME = np.zeros((48, 64, 3), dtype=np.uint8)
@@ -112,63 +111,6 @@ def test_camera_that_dies_clears_its_frame(monkeypatch):
 
 
 # ---------------------------------------------------------------- service
-class FakeDetector:
-    ready, tracking, model_name, models, device, error = True, False, "fake", ["fake"], "cpu", ""
-
-    def __init__(self):
-        self.output = []
-
-    def detect(self, frame, confidence, weapon_confidence):
-        return list(self.output)
-
-    def reset_tracks(self):
-        pass
-
-
-class FakeCamera:
-    running, index, fps, mirror, size, error = True, 0, 0.0, False, (64, 48), ""
-
-    def __init__(self):
-        self.frame_id = 0
-        self.fresh = True
-
-    def latest(self):
-        if self.fresh:
-            self.frame_id += 1
-        return self.frame_id, FRAME
-
-    def stop(self):
-        self.running = False
-
-
-class SyncNotifier:
-    def __init__(self):
-        self.sent = []
-
-    def send(self, contact, subject, body, image=None):
-        self.sent.append((contact["address"], subject))
-        return True, ""
-
-    def submit(self, fn, *args):
-        fn(*args)
-
-    def shutdown(self):
-        pass
-
-
-@pytest.fixture
-def service():
-    s = Sentinel()
-    s.detector, s.camera, s.notifier = FakeDetector(), FakeCamera(), SyncNotifier()
-    s.settings = s.store.save_settings({**DEFAULT_SETTINGS, "night_start": "00:00", "night_end": "23:59",
-                                        "incident_cooldown_s": 5})  # fresh settings: tests share one temp database
-    yield s
-    for item in s.store.incidents(limit=None):
-        s.store.delete_incident(item["id"])
-    for contact in s.store.contacts():
-        s.store.delete_contact(contact["id"])
-
-
 def test_weapon_raises_high_incident_and_auto_alert_is_sent(service):
     service.store.add_contact("Control room", "email", "control@example.com")
     service.settings = service.store.save_settings({"alert_mode": "auto"})
@@ -218,12 +160,6 @@ def test_stalled_camera_still_drives_lamp_and_expires_risk(service):
 
 
 # -------------------------------------------------------------------- API
-@pytest.fixture
-def client():
-    from sentinel.server import app
-    return TestClient(app)  # no context manager: the background service is not started
-
-
 def test_nan_location_is_rejected(client):
     response = client.put("/api/location", content='{"lat": 1, "lng": 2, "accuracy": NaN}',
                           headers={"content-type": "application/json"})

@@ -22,6 +22,8 @@ from .detection import MODELS, Detection, Detector, annotate
 from .hardware import HardwareLink
 from .risk import LEVELS, RiskEngine, RiskResult
 from .storage import Store
+from .privacy import MODES as BLUR_MODES
+from .privacy import blur_faces
 from .tamper import TamperMonitor
 from .zones import ZoneMonitor, draw_zones, validate_zone
 
@@ -38,7 +40,8 @@ RANGES = {
     "evidence_retention_days": (1, 365), "camera_index": (0, 9), "sos_hold_s": (10, 600),
     "escalate_after_min": (0, 240), "lamp_watts": (1, 2000), "tariff_per_kwh": (0, 1000), "co2_kg_per_kwh": (0, 3),
 }
-CHOICES = {"alert_mode": ("manual", "auto"), "day_night_source": ("auto", "clock", "ldr"), "model": tuple(MODELS)}
+CHOICES = {"alert_mode": ("manual", "auto"), "day_night_source": ("auto", "clock", "ldr"), "model": tuple(MODELS),
+           "blur_faces": BLUR_MODES}
 
 
 class SettingsError(ValueError):
@@ -179,7 +182,7 @@ class Sentinel:
             return None
         with self._lock:
             detections, events = list(self.detections), list(self.events)
-        return self._overlay(frame, detections, events)
+        return self._overlay(frame, detections, events, evidence=True)
 
     def _clip_saved(self, incident_id: int, name: str) -> None:
         if self.store.incident(incident_id) is None:  # deleted while recording
@@ -379,7 +382,8 @@ class Sentinel:
         snapshot = None
         if frame is not None:
             snapshot = f"{datetime.now(self.tz):%Y%m%d_%H%M%S}_{result.level.lower()}.jpg"
-            cv2.imwrite(str(EVIDENCE_DIR / snapshot), self._overlay(frame, detections, self.events), [cv2.IMWRITE_JPEG_QUALITY, 88])
+            cv2.imwrite(str(EVIDENCE_DIR / snapshot), self._overlay(frame, detections, self.events, evidence=True),
+                        [cv2.IMWRITE_JPEG_QUALITY, 88])
         people = sum(d.category == "person" for d in detections)
         if sos:
             label, confidence = "sos", 1.0
@@ -562,8 +566,11 @@ class Sentinel:
         self.note("system", f"Zones updated ({len(zones)})")
         return zones
 
-    def _overlay(self, frame, detections, events):
-        """Zones underneath, then boxes, skeletons and event labels."""
+    def _overlay(self, frame, detections, events, evidence: bool = False):
+        """Faces blurred (per the privacy setting), zones underneath, then boxes, skeletons and labels."""
+        mode = self.settings["blur_faces"]
+        if mode == "everywhere" or (mode == "live" and not evidence):
+            frame = blur_faces(frame, detections)
         if self.settings["zones"]:
             frame = draw_zones(frame, self.settings["zones"], self.zone_monitor.active, self.is_night)
         return annotate(frame, detections, events)

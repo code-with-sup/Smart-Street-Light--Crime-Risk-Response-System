@@ -1400,6 +1400,7 @@ PAGES.settings = {
         <div class="field"><label for="s-currency">Currency symbol</label><input class="input" id="s-currency" data-key="currency" maxlength="4" value="${esc(s.currency)}"></div>
         ${num("co2_kg_per_kwh", "Grid CO₂ (kg per kWh)", "India ≈ 0.71", 'min="0" max="3" step="0.01"')}</div>`)}
       ${section("bell", "red", "Alerts & evidence", "Messaging and how long records are kept", `<div class="form-grid">
+        ${select("blur_faces", "Blur faces (privacy)", [["off", "Off"], ["live", "On the operator's screen only (evidence keeps faces)"], ["everywhere", "Everywhere, including snapshots and clips"]], "Pixelates faces of everyone in view")}
         ${select("alert_mode", "When risk is HIGH", [["manual", "Operator confirms before sending"], ["auto", "Send automatically"]])}
         ${num("alert_cooldown_s", "Auto-alert cooldown (s)", "Minimum gap between automatic alerts", 'min="0" max="3600"')}
         ${num("escalate_after_min", "Escalate after (min)", "Unconfirmed HIGH alerts are sent automatically; 0 = never", 'min="0" max="240"')}
