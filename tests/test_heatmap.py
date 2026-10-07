@@ -37,8 +37,10 @@ def test_days_add_up(service):
 def test_background_picture_is_saved_with_faces_blurred(service, monkeypatch):
     from sentinel import service as service_module
 
+    from sentinel.risk import RiskResult
+    service.result = RiskResult(level="HIGH")
     blurred = []
     monkeypatch.setattr(service_module, "blur_faces", lambda frame, dets: blurred.append(len(dets)) or frame)
     service._heat_bg_at = 0
-    service._add_heat([person_with_feet_at(0.5, 0.5)], FRAME, time.time())
-    assert blurred == [1] and service.heatmap(1)["background"].startswith("/evidence/heatmap_background.jpg")
+    service._add_heat([person_with_feet_at(0.5, 0.5), Detection((0, 0, 20, 20), "knife", .9, "weapon")], FRAME, time.time())
+    assert blurred == [2] and service.heatmap(1)["background"].startswith("/evidence/heatmap_background.jpg")

@@ -1046,13 +1046,13 @@ PAGES.contacts = {
             <td><span class="badge ${c.channel === "email" ? "violet" : "green"}">${ic(c.channel === "email" ? "mail" : "send")} ${c.channel}</span></td>
             <td class="mono">${esc(c.address)}</td>
             <td><label class="toggle"><input type="checkbox" data-enable="${c.id}" ${c.enabled ? "checked" : ""}><span></span></label></td>
-            <td style="text-align:right;white-space:nowrap"><button class="btn sm" data-test="${c.id}">${ic("send")} Test</button>
+            <td style="text-align:right;white-space:nowrap">${c.channel === "phone" ? `<a class="btn sm" href="tel:${esc(c.address)}">Call</a><span class="small muted"> Manual call</span>` : `<button class="btn sm" data-test="${c.id}">${ic("send")} Test</button>`}
               <button class="btn sm ghost danger" data-del="${c.id}" title="Remove">${ic("trash")}</button></td></tr>`).join("")}
         </tbody></table></div>` : emptyState("users", "No contacts yet", "Add the people who should be told when a weapon is detected.")}
         <div class="card-body" style="border-top:1px solid var(--border)">
           <form class="form-grid" id="ct-form" autocomplete="off">
             <div class="field"><label for="ct-name">Name</label><input class="input" id="ct-name" maxlength="60" required placeholder="e.g. Police control room"></div>
-            <div class="field"><label for="ct-channel">Channel</label><select class="input" id="ct-channel"><option value="email">Email</option><option value="telegram">Telegram</option></select></div>
+            <div class="field"><label for="ct-channel">Channel</label><select class="input" id="ct-channel"><option value="email">Email</option><option value="telegram">Telegram</option><option value="phone">Phone (manual call)</option></select></div>
             <div class="field"><label for="ct-address" id="ct-address-label">Email address</label><input class="input" id="ct-address" maxlength="120" required placeholder="name@example.com"></div>
             <div class="field" style="justify-content:flex-end"><button class="btn primary" type="submit">${ic("plus")} Add contact</button></div>
           </form>
@@ -1066,9 +1066,9 @@ PAGES.contacts = {
         </tbody></table></div>` : `<div class="empty"><p>No alerts sent yet.</p></div>`}
       </div>`;
     $("#ct-channel").addEventListener("change", (e) => {
-      const tg = e.target.value === "telegram";
-      $("#ct-address-label").textContent = tg ? "Telegram chat ID" : "Email address";
-      $("#ct-address").placeholder = tg ? "e.g. 123456789 (from @userinfobot)" : "name@example.com";
+      const tg = e.target.value === "telegram", phone = e.target.value === "phone";
+      $("#ct-address-label").textContent = tg ? "Telegram chat ID" : phone ? "Emergency phone number" : "Email address";
+      $("#ct-address").placeholder = tg ? "e.g. 123456789 (from @userinfobot)" : phone ? "e.g. +919876543210" : "name@example.com";
     });
     $("#ct-form").addEventListener("submit", async (e) => {
       e.preventDefault();

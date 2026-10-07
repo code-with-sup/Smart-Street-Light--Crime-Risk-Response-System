@@ -396,3 +396,15 @@ Tests use a temporary data folder (`SENTINEL_DATA_DIR`) and never touch `data/`.
   thresholds in `sentinel/behavior.py` with a few real clips (a scuffle, someone lying down).
 - **Weapon model:** retraining with night/CCTV images and hard negatives would raise recall and cut
   false alarms (see section 5).
+
+### Emergency phone contacts and evidence recording
+
+Phone contacts are stored locally and provide a manual Call link in Alert contacts.
+They are excluded from automatic delivery; SMS and automatic calls are not configured.
+Email delivery still requires SMTP credentials in `.env`.
+
+Snapshots and video clips are saved only when HIGH risk has a current weapon/crime
+model detection or a sustained crime behaviour indication. Night presence, crowds,
+SOS alone and a held HIGH state without a current threat do not save media. Their
+incident records and SOS alert handling remain available. Normal activity also
+stops saving heatmap background images; numerical heatmap counts continue.

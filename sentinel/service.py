@@ -359,7 +359,7 @@ class Sentinel:
                 self._heat[gy * HEAT_W + gx] += 1
         if now - self._heat_flushed >= 60:
             self._flush_heat()
-        if now - self._heat_bg_at >= HEAT_BACKGROUND_EVERY:
+        if self.result.level == "HIGH" and self._evidence_threat_present(detections) and now - self._heat_bg_at >= HEAT_BACKGROUND_EVERY:
             self._heat_bg_at = now
             cv2.imwrite(str(EVIDENCE_DIR / HEAT_BACKGROUND), blur_faces(frame, detections), [cv2.IMWRITE_JPEG_QUALITY, 75])
 
@@ -444,13 +444,21 @@ class Sentinel:
         return self._clock_night(), "clock"
 
     # ----------------------------------------------------------- incidents
+    def _evidence_threat_present(self, detections: list[Detection]) -> bool:
+        """Require current weapon/crime evidence, excluding presence, SOS and sensor alerts."""
+        return any(d.category in ("weapon", "event") for d in detections) or any(
+            e.severity == "HIGH" and e.kind in ("fight", "hands_up", "person_down")
+            for e in self.events
+        )
+
     def _record_incident(self, result: RiskResult, detections: list[Detection], frame, sos: bool = False) -> None:
         now = time.time()
         if not sos and now - self._last_incident.get(result.level, 0) < self.settings["incident_cooldown_s"]:
             return
         self._last_incident[result.level] = now
         snapshot = None
-        if frame is not None:
+        record_evidence = result.level == "HIGH" and self._evidence_threat_present(detections)
+        if record_evidence and frame is not None:
             snapshot = f"{datetime.now(self.tz):%Y%m%d_%H%M%S}_{result.level.lower()}.jpg"
             cv2.imwrite(str(EVIDENCE_DIR / snapshot), self._overlay(frame, detections, self.events, evidence=True),
                         [cv2.IMWRITE_JPEG_QUALITY, 88])
@@ -466,7 +474,7 @@ class Sentinel:
             label = "crowd" if "crowd" in reason else "loitering" if "linger" in reason else "night activity"
             persons = [d.confidence for d in detections if d.category == "person"]
             confidence = max(persons) if persons else None
-        contacts = [c for c in self.store.contacts() if c["enabled"]]
+        contacts = [c for c in self.store.contacts() if c["enabled"] and c["channel"] != "phone"]
         if result.level != "HIGH":
             alert_status = "none"
         elif not contacts:
@@ -480,7 +488,7 @@ class Sentinel:
             snapshot=snapshot, lat=location.get("lat"), lng=location.get("lng"), alert_status=alert_status,
         )
         self.note("incident", f"Incident #{incident['id']}: {result.level} – {label}", result.level, incident["id"])
-        if self.settings["record_clips"] and self.camera.running:
+        if record_evidence and self.settings["record_clips"] and self.camera.running:
             self.clips.capture(incident["id"], f"{datetime.now(self.tz):%Y%m%d_%H%M%S}_{result.level.lower()}_{incident['id']}")
         if alert_status == "pending" and sos:
             # a person asked for help: no AI judgement to confirm, so send at once in every mode
@@ -499,7 +507,7 @@ class Sentinel:
         incident = self.store.incident(incident_id)
         if incident is None:
             raise KeyError(incident_id)
-        contacts = [c for c in self.store.contacts() if c["enabled"]]
+        contacts = [c for c in self.store.contacts() if c["enabled"] and c["channel"] != "phone"]
         if not contacts:
             return self.store.update_incident(incident_id, alert_status="no_contacts")
         self.store.update_incident(incident_id, alert_status="sending")
