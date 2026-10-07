@@ -405,8 +405,13 @@ def sos_clear() -> dict:
 
 
 @app.get("/api/models")
-def models() -> list[dict]:
-    return [{"id": key, **meta, "downloaded": (ROOT / f"{key}.pt").exists()} for key, meta in MODELS.items()]
+def models() -> dict:
+    """Generic models that are on this computer (plus the selected one), and the models that always run with it."""
+    current = sentinel.settings["model"]
+    choices = [{"id": key, **meta} for key, meta in MODELS.items() if key == current or (ROOT / f"{key}.pt").exists()]
+    detector = sentinel.detector
+    loaded = detector.models if detector and detector.ready else []
+    return {"models": choices, "always_on": [m for m in loaded if m != f"{detector.model_name}.pt"]}
 
 
 @app.get("/api/health")

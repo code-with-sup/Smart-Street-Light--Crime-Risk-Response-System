@@ -1416,7 +1416,7 @@ PAGES.settings = {
         <div class="zone-grid" id="zone-grid">${QUICK_ZONES.map(([n, z]) => `<button class="zone ${s.time_zone === z ? "on" : ""}" data-zone="${z}"><div class="small muted">${n}</div><div class="t" data-zone-time="${z}">--:--</div></button>`).join("")}</div>
         <div class="field" style="margin-top:16px;max-width:360px"><label for="s-time_zone">Time zone</label><select class="input" id="s-time_zone" data-key="time_zone">${zones.map((z) => `<option ${z === s.time_zone ? "selected" : ""}>${z}</option>`).join("")}</select></div>`)}
       ${section("cpu", "", "Detection", "Which AI model runs, and how sure it must be before it counts something", `<div class="form-grid">
-        <div class="field"><label for="s-model">AI model</label><select class="input" id="s-model" data-key="model"><option value="${esc(s.model)}">${esc(s.model)}</option></select>
+        <div class="field"><label for="s-model">People &amp; vehicle model</label><select class="input" id="s-model" data-key="model"><option value="${esc(s.model)}">${esc(s.model)}</option></select>
           <div class="hint" id="s-model-hint">Bigger models spot small objects like knives better but run slower.</div></div>
         ${range("confidence", "People & vehicle confidence", 0.05, 0.95, 0.05, true)}
         ${range("weapon_confidence", "Weapon confidence", 0.05, 0.95, 0.05, true, "Higher = fewer false alarms")}
@@ -1485,10 +1485,11 @@ PAGES.settings = {
       $("#s-dirty").textContent = "All changes saved";
       tickClock();
     }).then(() => { if ($("#s-save")) $("#s-save").disabled = true; }));
-    api("/api/models", { quiet: true }).then((models) => {
+    api("/api/models", { quiet: true }).then(({ models, always_on: alwaysOn }) => {
       const sel = $("#s-model");
       if (!sel) return;
-      sel.innerHTML = models.map((m) => `<option value="${m.id}" ${m.id === s.model ? "selected" : ""}>${esc(m.label)}${m.downloaded ? "" : ` (downloads ~${m.size_mb} MB)`}</option>`).join("");
+      sel.innerHTML = models.map((m) => `<option value="${m.id}" ${m.id === s.model ? "selected" : ""}>${esc(m.label)}</option>`).join("");
+      if (alwaysOn.length) $("#s-model-hint").textContent = `People & vehicles. Always running with it: ${alwaysOn.join(", ")}`;
     }).catch(() => {});
     const tickZones = () => $$("[data-zone-time]").forEach((el) => {
       el.textContent = new Intl.DateTimeFormat("en-IN", { timeZone: el.dataset.zoneTime, hour: "2-digit", minute: "2-digit", hour12: true }).format(new Date());

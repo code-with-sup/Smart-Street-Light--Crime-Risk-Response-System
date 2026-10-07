@@ -377,3 +377,12 @@ def test_person_entering_a_high_zone_raises_high_with_the_zone_name(service):
 def test_zone_api_rejects_bad_zones(client):
     bad = client.put("/api/zones", json=[{"type": "line", "points": [[0, 0]]}])
     assert bad.status_code == 400 and "2 points" in bad.json()["detail"]
+
+
+def test_model_list_only_offers_models_on_this_computer(client):
+    from sentinel.config import ROOT
+
+    data = client.get("/api/models").json()
+    current = client.get("/api/settings").json()["model"]
+    assert data["models"] and all(m["id"] == current or (ROOT / f"{m['id']}.pt").exists() for m in data["models"])
+    assert isinstance(data["always_on"], list)
