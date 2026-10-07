@@ -416,6 +416,7 @@ async function openIncident(id, onChange) {
         </dl>
         <ul class="reasons" style="margin:0">${item.reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
         ${item.level === "HIGH" ? `<button class="btn ${item.alert_status === "sent" ? "" : "danger solid"}" data-m="alert">${ic("send")} ${item.alert_status === "sent" ? "Send alert again" : "Send alert to contacts"}</button>` : ""}
+        ${item.clip_url ? `<button class="btn danger" data-m="delete-clip">${ic("trash")} Delete video</button>` : ""}
         <div class="field"><label>Review</label>
           <div class="segmented">${Object.entries(STATUS_LABEL).map(([k, v]) => `<button class="${item.status === k ? "on" : ""}" data-status="${k}">${v}</button>`).join("")}</div></div>
         <div class="field"><label for="m-notes">Notes</label><textarea class="input" id="m-notes" maxlength="1000" placeholder="What happened? Who checked it?">${esc(item.notes)}</textarea></div>
@@ -449,8 +450,13 @@ async function openIncident(id, onChange) {
     } else if (t.dataset.m === "alert") {
       await busy(t, () => api(`/api/incidents/${id}/alert`, { method: "POST" }));
       toast("Sending alert to contacts…"); closeModal(); onChange && onChange();
+    } else if (t.dataset.m === "delete-clip") {
+      if (!confirm(`Delete the video for incident #${id}? The snapshot and incident details will be kept. This cannot be undone.`)) return;
+      await busy(t, () => api(`/api/incidents/${id}/clip`, { method: "DELETE" }));
+      toast("Video deleted"); closeModal(); onChange && onChange();
+      await openIncident(id, onChange);
     } else if (t.dataset.m === "delete") {
-      if (!confirm(`Delete incident #${id} and its snapshot? This cannot be undone.`)) return;
+      if (!confirm(`Delete incident #${id}, its snapshot and video? This cannot be undone.`)) return;
       await api(`/api/incidents/${id}`, { method: "DELETE" });
       toast("Incident deleted"); closeModal(); onChange && onChange();
     }

@@ -194,6 +194,17 @@ def patch_incident(incident_id: int, body: IncidentPatch) -> dict:
     return item
 
 
+@app.delete("/api/incidents/{incident_id}/clip")
+def delete_incident_clip(incident_id: int) -> dict:
+    try:
+        found = sentinel.store.delete_clip(incident_id)
+    except OSError:
+        raise HTTPException(500, "Could not delete the video. Please try again.") from None
+    if not found:
+        raise HTTPException(404)
+    return {"deleted_clip": incident_id}
+
+
 @app.delete("/api/incidents/{incident_id}")
 def delete_incident(incident_id: int) -> dict:
     if not sentinel.store.delete_incident(incident_id):
