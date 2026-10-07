@@ -378,6 +378,14 @@ def put_zones(zones: list[dict]) -> list[dict]:
         raise _bad_request(error) from None
 
 
+@app.post("/api/voice/test")
+def voice_test() -> dict:
+    text = sentinel.settings["voice_high"]
+    if not sentinel.speaker.say(text):
+        raise HTTPException(409, sentinel.speaker.last_error or "Still speaking the previous message")
+    return {"message": "Speaking the HIGH warning"}
+
+
 @app.post("/api/sos/simulate")
 def sos_simulate() -> dict:
     """Same as pressing the SOS button on the pole (for demos and testing without hardware)."""

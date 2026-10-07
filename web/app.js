@@ -337,6 +337,7 @@ const ACTIONS = {
   "cam-stop": (btn) => busy(btn, async () => { await api("/api/camera/stop", { method: "POST" }); }),
   "cam-switch": (btn) => busy(btn, async () => { const r = await api("/api/camera/switch", { method: "POST" }); toast(r.message, r.ok ? "ok" : "error"); }),
   "cam-mirror": async () => { const r = await api("/api/camera/mirror", { method: "POST", body: { mirror: !(S.live && S.live.camera.mirror) } }); toast(r.mirror ? "Image mirrored" : "Mirror off"); },
+  "voice-test": (btn) => busy(btn, async () => { const r = await api("/api/voice/test", { method: "POST" }); toast(r.message); }),
   "sos-clear": (btn) => busy(btn, async () => { await api("/api/sos/clear", { method: "POST" }); toast("SOS cleared"); }),
   "sos-sim": (btn) => busy(btn, async () => { await api("/api/sos/simulate", { method: "POST" }); }),
   "cam-full": (btn) => { const stage = btn.closest(".stage"); if (stage && stage.requestFullscreen) stage.requestFullscreen(); },
@@ -1395,6 +1396,11 @@ PAGES.settings = {
         <div class="field"><label for="s-strobe_on_high">Strobe the lamp on HIGH</label><label class="toggle"><input type="checkbox" id="s-strobe_on_high" data-key="strobe_on_high" ${s.strobe_on_high ? "checked" : ""}><span></span></label>
           <div class="hint">Flashing deters and draws attention</div></div>
         ${num("sos_hold_s", "SOS keeps HIGH for (s)", "Unless an operator clears it", 'min="10" max="600"')}
+        ${select("voice_warnings", "Voice warning from the speaker", [["off", "Off"], ["high", "On HIGH"], ["medium", "On MEDIUM and HIGH"]], "Repeats every 30 s while risk stays raised")}
+        <div class="field"><label for="s-voice_high">HIGH message</label><input class="input" id="s-voice_high" data-key="voice_high" maxlength="200" value="${esc(s.voice_high)}"></div>
+        <div class="field"><label for="s-voice_medium">MEDIUM message</label><input class="input" id="s-voice_medium" data-key="voice_medium" maxlength="200" value="${esc(s.voice_medium)}"></div>
+        <div class="field"><label for="s-voice_sos">SOS message</label><input class="input" id="s-voice_sos" data-key="voice_sos" maxlength="200" value="${esc(s.voice_sos)}"></div>
+        <div class="field" style="justify-content:flex-end"><button class="btn" type="button" data-act="voice-test">${ic("volume")} Test voice</button></div>
         ${num("lamp_watts", "Lamp power (W)", "At 100 % brightness, for the energy report", 'min="1" max="2000"')}
         ${num("tariff_per_kwh", "Electricity price per kWh", "", 'min="0" max="1000" step="0.1"')}
         <div class="field"><label for="s-currency">Currency symbol</label><input class="input" id="s-currency" data-key="currency" maxlength="4" value="${esc(s.currency)}"></div>

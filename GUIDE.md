@@ -326,6 +326,7 @@ snapshot and a Google Maps link. **Automatic**: sends at once, limited by *Auto-
 | Keep evidence for | 30 days | older incidents, snapshots and clips are deleted automatically |
 | Record video clips | on | ~10 s per incident (H.264 MP4, or WebM if H.264 isn't available) |
 | Camera tamper detection | on | turn off for a camera that is often moved on purpose |
+| Voice warning | off | speaks your message from the computer's speaker (macOS `say`, Windows speech, Linux `espeak`) on HIGH, or on MEDIUM and HIGH; *Test voice* tries it |
 | Blur faces | off | *operator's screen only* protects bystanders while evidence keeps faces for police; *everywhere* blurs saved snapshots and clips too |
 | Escalate after | 5 min | 0 = HIGH alerts always wait for an operator |
 | Lamp power / price / CO₂ factor | 60 W / ₹8 / 0.71 | for an accurate energy report |

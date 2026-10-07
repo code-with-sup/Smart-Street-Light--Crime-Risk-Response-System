@@ -44,6 +44,10 @@ DEFAULT_SETTINGS: dict = {
     "low_brightness": 20,
     "strobe_on_high": True,   # lamp flashes while risk is HIGH (deters, draws attention)
     "sos_hold_s": 60,
+    "voice_warnings": "off",  # off | high | medium (MEDIUM and HIGH); spoken from the computer's speaker
+    "voice_high": "Warning. This area is under video surveillance. Security has been alerted.",
+    "voice_medium": "This street is monitored. Please move along.",
+    "voice_sos": "Help is on the way. Your call for help has been recorded.",
     "record_clips": True,
     "escalate_after_min": 5,  # HIGH alert not confirmed by an operator within this -> sent automatically (0 = never)
     "lamp_watts": 60,         # power of the street lamp at 100 %

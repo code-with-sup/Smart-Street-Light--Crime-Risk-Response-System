@@ -25,6 +25,8 @@ from .storage import Store
 from .privacy import MODES as BLUR_MODES
 from .privacy import blur_faces
 from .tamper import TamperMonitor
+from .voice import MODES as VOICE_MODES
+from .voice import Speaker
 from .zones import ZoneMonitor, draw_zones, validate_zone
 
 log = logging.getLogger("sentinel.service")
@@ -41,7 +43,8 @@ RANGES = {
     "escalate_after_min": (0, 240), "lamp_watts": (1, 2000), "tariff_per_kwh": (0, 1000), "co2_kg_per_kwh": (0, 3),
 }
 CHOICES = {"alert_mode": ("manual", "auto"), "day_night_source": ("auto", "clock", "ldr"), "model": tuple(MODELS),
-           "blur_faces": BLUR_MODES}
+           "blur_faces": BLUR_MODES, "voice_warnings": VOICE_MODES}
+VOICE_REPEAT_SECONDS = 30
 
 
 class SettingsError(ValueError):
@@ -74,6 +77,8 @@ def _coerce(key: str, value):
             raise SettingsError(f"{key} must be between {low} and {high}")
     if key in CHOICES and value not in CHOICES[key]:
         raise SettingsError(f"{key} must be one of {', '.join(CHOICES[key])}")
+    if key in ("voice_high", "voice_medium", "voice_sos") and not 1 <= len(value) <= 200:
+        raise SettingsError("Voice messages must be 1-200 characters")
     if key == "currency" and not 1 <= len(value) <= 4:
         raise SettingsError("currency must be 1-4 characters, e.g. ₹ or USD")
     if key in ("night_start", "night_end") and not TIME_RE.match(value):
@@ -99,6 +104,8 @@ class Sentinel:
         self.behavior = BehaviorAnalyzer()
         self.tamper = TamperMonitor()
         self.zone_monitor = ZoneMonitor()
+        self.speaker = Speaker()
+        self._last_spoken = (0.0, "")  # (time, level) of the last warning
         self.events: list[Event] = []
         self.result = RiskResult()
         self.hardware = HardwareLink()
@@ -191,6 +198,23 @@ class Sentinel:
         self.store.set_clip(incident_id, name)
         self.note("system", f"Video clip saved for incident #{incident_id}", incident_id=incident_id)
 
+    def _voice(self, result: RiskResult, previous: str, *, sos: bool, now: float) -> None:
+        """Speak when risk rises, then repeat every 30 s while it stays raised; SOS has its own message."""
+        mode = self.settings["voice_warnings"]
+        if mode == "off":
+            return
+        if sos:
+            text = self.settings["voice_sos"]
+        elif result.level == "HIGH" or (result.level == "MEDIUM" and mode == "medium"):
+            text = self.settings["voice_high" if result.level == "HIGH" else "voice_medium"]
+        else:
+            return
+        last_time, last_level = self._last_spoken
+        rose = LEVELS.index(result.level) > LEVELS.index(previous)
+        due = sos or rose or result.level != last_level or now - last_time >= VOICE_REPEAT_SECONDS
+        if due and self.speaker.say(text):
+            self._last_spoken = (now, result.level)
+
     def clear_sos(self) -> None:
         """Operator has responded: stop holding HIGH for the SOS (other threats still count)."""
         if self._sos_until:
@@ -272,6 +296,7 @@ class Sentinel:
             self.detections, self.result, self.events = detections, result, events
             self._det_version += 1
         self._drive(result, detections)
+        self._voice(result, previous, sos=self._sos_new, now=now)
 
         if result.level != previous:
             self.note("level", f"Risk {previous} → {result.level}: {result.reasons[0]}", result.level)

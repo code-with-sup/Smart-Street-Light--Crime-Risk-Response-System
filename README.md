@@ -59,6 +59,7 @@ No webcam? Play a video as the camera: `run.py --video street.mp4`.
 - 🆘 **SOS button** on the pole: instant HIGH, lamp strobe, buzzer and an immediate alert (works even if the PC is down)
 - ⚡ Lamp **strobes** while risk is HIGH
 - 📐 **Zones & tripwires** drawn on the camera: no-entry areas, lingering areas, one-way tripwires, night-only schedules
+- 🔊 **Voice warning** from the speaker on HIGH (and optionally MEDIUM), with your own messages in any language
 - 🙈 **Face blurring for privacy**: on the operator's screen only, or everywhere including evidence
 - 🛡️ **Camera tamper detection**: covered / blinded (HIGH), blurred or turned away (MEDIUM)
 - 🔋 **Energy report**: kWh, money and CO₂ saved by smart dimming vs a normal lamp
