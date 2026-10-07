@@ -1,4 +1,4 @@
-# Sentinel Street — Guide
+# Smart Street — Guide
 
 This guide explains what was built on top of the original prototype, how to start it, and how it
 works inside. Read it top to bottom once; after that, jump to the section you need.

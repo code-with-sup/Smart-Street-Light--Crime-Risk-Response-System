@@ -546,10 +546,10 @@ class Sentinel:
             lines.append(f"No operator responded within {self.settings['escalate_after_min']} min, so this was sent "
                          "automatically. AI detection, not yet verified by a person.")
         else:
-            lines.append("Confirmed by the Sentinel Street operator." if confirmed else
+            lines.append("Confirmed by the Smart Street operator." if confirmed else
                          "Automatic AI detection – not yet verified by a person.")
-        subject = ("🆘 Sentinel Street: SOS — help requested" if incident["label"] == "sos"
-                   else f"⚠ Sentinel Street: {incident['level']} risk – {incident['label']}")
+        subject = ("🆘 Smart Street: SOS — help requested" if incident["label"] == "sos"
+                   else f"⚠ Smart Street: {incident['level']} risk – {incident['label']}")
         return subject, "\n".join(lines)
 
     # -------------------------------------------------------------- stream

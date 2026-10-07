@@ -1,4 +1,4 @@
-"""Start Sentinel Street and open the dashboard.
+"""Start Smart Street and open the dashboard.
 
     python run.py                 # http://127.0.0.1:8000, opens a browser window
     python run.py --no-browser    # server only
@@ -63,7 +63,7 @@ def ensure_camera_permission() -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Sentinel Street dashboard")
+    parser = argparse.ArgumentParser(description="Smart Street dashboard")
     # Bound to localhost by default: the camera feed should not be reachable from the network.
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)

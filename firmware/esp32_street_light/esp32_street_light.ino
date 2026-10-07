@@ -1,5 +1,5 @@
 /*
-  Sentinel Street — ESP32 street light controller
+  Smart Street — ESP32 street light controller
 
   Board: ESP32 Dev Module (ESP32 Arduino core 3.x)
   Wiring:

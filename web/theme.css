@@ -1,4 +1,4 @@
-/* Sentinel Street design tokens — shared by the landing page and the dashboard.
+/* Smart Street design tokens — shared by the landing page and the dashboard.
    Identity: sodium-vapour street-light amber on warm graphite. Risk colours are reserved
    for risk: green = LOW, orange = MEDIUM, red = HIGH. Type: Geist (UI), Geist Mono (live numbers only), Instrument Serif (display accents). */
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap");

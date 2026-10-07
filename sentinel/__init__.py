@@ -1,1 +1,1 @@
-"""Sentinel Street: AI smart street light with crime-risk response."""
+"""Smart Street: AI smart street light with crime-risk response."""

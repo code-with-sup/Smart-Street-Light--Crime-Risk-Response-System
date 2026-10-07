@@ -33,7 +33,7 @@ async def lifespan(_app: FastAPI):
     sentinel.shutdown()
 
 
-app = FastAPI(title="Sentinel Street", lifespan=lifespan)
+app = FastAPI(title="Smart Street", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 
@@ -266,8 +266,8 @@ def test_contact(contact_id: int) -> dict:
     contact = sentinel.store.contact(contact_id)
     if contact is None:
         raise HTTPException(404)
-    ok, error = sentinel.notifier.send(contact, "Sentinel Street test alert",
-                                       "This is a test message from your Sentinel Street dashboard. "
+    ok, error = sentinel.notifier.send(contact, "Smart Street test alert",
+                                       "This is a test message from your Smart Street dashboard. "
                                        "If you received it, alerts to you are working.")
     sentinel.store.log_alert(None, contact_id, contact["channel"], ok, error)
     if not ok:

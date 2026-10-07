@@ -1,3 +1,3 @@
 Example images: 'Yolo Weapon Detection' dataset v1, gsds-workspace on Roboflow Universe,
 https://universe.roboflow.com/gsds-workspace/yolo-weapon-detection-9y41l, licensed CC BY 4.0.
-Annotated by Sentinel Street's own models (yolo11n tracking + pose, models/custom/weapon.pt).
+Annotated by Smart Street's own models (yolo11n tracking + pose, models/custom/weapon.pt).

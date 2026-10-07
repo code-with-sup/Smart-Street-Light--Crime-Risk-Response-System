@@ -1,4 +1,4 @@
-/* Sentinel Street landing page: three.js night street hero + scroll interactions.
+/* Smart Street landing page: three.js night street hero + scroll interactions.
    Falls back to the 2D SVG scene (scene.js) when WebGL or the three.js CDN is unavailable. */
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

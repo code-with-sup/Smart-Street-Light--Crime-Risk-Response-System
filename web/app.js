@@ -1,5 +1,5 @@
 "use strict";
-/* Sentinel Street dashboard — vanilla JS single-page app. */
+/* Smart Street dashboard — vanilla JS single-page app. */
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -86,7 +86,7 @@ async function api(path, { method = "GET", body, quiet = false } = {}) {
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    if (!quiet) toast("Can't reach the Sentinel server. Is run.py still running?", "error", 5000);
+    if (!quiet) toast("Can't reach the Smart Street server. Is run.py still running?", "error", 5000);
     throw new Error("Server unreachable");
   }
   let data = null;
@@ -180,14 +180,14 @@ function connectLive() {
   ws.onopen = () => {
     S.wsOk = true;
     S.resync = true; // the server may have restarted: its activity ids start again from 1
-    if (S.offline) { S.offline = false; toast("Reconnected to Sentinel"); }
+    if (S.offline) { S.offline = false; toast("Reconnected to Smart Street"); }
   };
   ws.onmessage = (event) => onLive(JSON.parse(event.data));
   ws.onclose = () => {
     const wasOnline = S.wsOk;
     S.wsOk = false;
     showOffline();
-    if (wasOnline) { S.offline = true; toast("Lost connection to Sentinel. Reconnecting…", "error", 5000); }
+    if (wasOnline) { S.offline = true; toast("Lost connection to Smart Street. Reconnecting…", "error", 5000); }
     setTimeout(connectLive, 1500);
   };
 }
@@ -1304,7 +1304,7 @@ PAGES.analytics = {
     $("#an-energy-sub").textContent = `Smart dimming vs a normal ${en.lamp_watts} W lamp at full power all night`;
     S.charts.push(new Chart($("#c-energy"), { type: "bar", data: { labels, datasets: [
       { label: "Normal lamp (kWh)", data: en.baseline_kwh, backgroundColor: cssVar("--faint"), borderRadius: 4 },
-      { label: "Sentinel lamp (kWh)", data: en.lamp_kwh, backgroundColor: low, borderRadius: 4 }] },
+      { label: "Smart Street lamp (kWh)", data: en.lamp_kwh, backgroundColor: low, borderRadius: 4 }] },
     options: { ...base, scales: { x: axes.x, y: { ...axes.y, ticks: {} } } } }));
     const tl = a.timeline;
     S.charts.push(new Chart($("#c-line"), { type: "line", data: { labels: tl.map((p) => fmt(p.ts, { hour: "2-digit", minute: "2-digit", hour12: false })), datasets: [
@@ -1528,7 +1528,7 @@ function route() {
   const meta = NAV.find((n) => n.id === page);
   $("#page-title").textContent = meta.label;
   $("#page-sub").textContent = meta.sub;
-  document.title = `${meta.label} · Sentinel Street`;
+  document.title = `${meta.label} · Smart Street`;
   renderNav();
   const root = $("#page");
   const fresh = root.cloneNode(false); // drop listeners from the previous page

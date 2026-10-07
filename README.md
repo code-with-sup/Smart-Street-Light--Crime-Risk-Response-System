@@ -1,4 +1,4 @@
-# Sentinel Street — AI Smart Street Light with Crime-Risk Response
+# Smart Street — AI Smart Street Light with Crime-Risk Response
 
 An intelligent IoT and AI-based smart street light that improves public safety by detecting
 suspicious activity and responding to different crime-risk levels.

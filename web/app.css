@@ -1,4 +1,4 @@
-/* Sentinel Street dashboard. Tokens live in theme.css. */
+/* Smart Street dashboard. Tokens live in theme.css. */
 svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 svg.scene { width: 100%; height: 100%; stroke: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
