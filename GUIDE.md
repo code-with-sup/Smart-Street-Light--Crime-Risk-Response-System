@@ -104,12 +104,12 @@ The server listens on `127.0.0.1` only, so nobody else on the network can see th
 | Tab | What you do there |
 |---|---|
 | **Overview** | The big panel shows the current risk (LOW/MEDIUM/HIGH), why, the lamp and buzzer state, and plays *example* detections. The live camera is not shown here. Below: "Why this level", the activity log, and recent incidents. |
-| **Live monitoring** | The live camera with AI boxes, track IDs and pose skeletons. Right side: which models are running, speed, confidence sliders, and everything in view (each with the model that found it, e.g. `weapon.pt`). With the camera off it replays your own recent detections. |
-| **Incident review** | Every MEDIUM/HIGH moment with its snapshot. Open one to read the reasons, add notes, mark it **Reviewed** or **False alarm**, send the alert, or delete it. |
+| **Live monitoring** | The live camera with AI boxes, track IDs and pose skeletons. **Zones & tripwires**: draw areas and lines on the camera (see section 4). Right side: which models are running, speed, confidence sliders, and everything in view (each with the model that found it, e.g. `weapon.pt`). With the camera off it replays your own recent detections. |
+| **Incident review** | Every MEDIUM/HIGH moment with its snapshot and a **10-second video clip** (5 s before, 5 s after; switch Clip / Photo, download). Open one to read the reasons, add notes, mark it **Reviewed** or **False alarm**, send the alert, or delete it. |
 | **GPS tracking** | Set where this street light is: *Use my location*, *Pick on map*, or type coordinates. Incidents appear on the map. |
 | **Alert contacts** | Add people to alert (email or Telegram), test them, and choose *Operator confirms* (default) or *Automatic*. |
-| **Sensors & lights** | Connect the ESP32 (pick its USB port), see PIR/LDR readings and what the lamp is doing, and test the lamp and buzzer by hand. |
-| **Analytics** | Incidents per day and hour, what was detected, false-alarm rate, people/vehicle counts over 24 h. |
+| **Sensors & lights** | Connect the ESP32 (pick its USB port), see PIR/LDR readings and what the lamp is doing, test the lamp and buzzer by hand, and **Simulate SOS** / **Clear SOS**. |
+| **Analytics** | Incidents per day and hour, what was detected, false-alarm rate, people/vehicle counts over 24 h, and the **energy report** (kWh, money and CO₂ saved by dimming). |
 | **Reports** | Download a PDF (summary, log, evidence photos) or CSV for a date range. |
 | **Settings** | Time zone, AI model and thresholds, risk rules, night hours, lamp dim level, alert cooldowns, how long evidence is kept. |
 
@@ -150,11 +150,36 @@ flowchart LR
 
 ### The risk rules
 
-**HIGH** (lamp 100 %, buzzer on, incident + alert):
+**HIGH** (lamp 100 % and strobing, buzzer on, incident + clip + alert):
 - a **weapon** seen in at least **2 of the last 3** detection passes (one flickering frame is not enough), or
-- a sustained crime cue: **possible fight**, **person down**, **hands raised near another person**.
+- a sustained crime cue: **possible fight**, **person down**, **hands raised near another person**, or
+- the **SOS button** on the pole. SOS is held for 60 s (or until an operator presses **Clear SOS**), and its
+  alert is sent **immediately even in operator-confirm mode**, because a person asked for help.
 
 HIGH is held for 8 s after the cause disappears so the lamp and buzzer don't flicker.
+
+**Zones & tripwires** (`sentinel/zones.py`): drawn in Live monitoring by clicking on the camera
+image (an area: click its corners, then Finish; a tripwire: two clicks). Each has a name, a level
+(MEDIUM or HIGH) and is active *always* or *night only*. People are placed by their **feet** (bottom
+of their box), so walking in front of an area painted on the ground doesn't count.
+
+| Zone | Triggers when | Example |
+|---|---|---|
+| Area · no entry | anyone steps inside | a closed shop door, a park after hours |
+| Area · lingering | one person stays inside longer than N s | an ATM, a bus stop at night |
+| Tripwire | someone crosses it: either way, or only with / against the arrow shown on the video | a gate, the entrance to a lane |
+
+**Camera tampering** (`sentinel/tamper.py`) is judged against the camera's own recent normal, so
+dusk is not mistaken for a covered lens: **covered or blinded** (picture suddenly almost uniform) → HIGH;
+**blurred** (sharpness under 15 % of normal for 4 s) or **turned away** (most of the view changed for 5 s;
+accepted as the new view after 20 s) → MEDIUM. Live monitoring shows the camera's health.
+
+**Escalation:** a HIGH alert still waiting for an operator after *Escalate after* minutes (default 5)
+is sent automatically, marked as not verified by a person. Set it to 0 to never escalate.
+
+**Energy:** the app integrates the lamp's real power over time and compares it with a normal lamp at
+full power for every night hour. Set the lamp's wattage, the electricity price and the grid's CO₂
+factor in Settings → Lighting.
 
 **MEDIUM** (lamp 100 %, incident):
 - a person or PIR motion **at night**,
@@ -244,6 +269,7 @@ Sketch: [`firmware/esp32_street_light/esp32_street_light.ino`](firmware/esp32_st
 | Piezo buzzer | GPIO 26 | |
 | PIR sensor (HC-SR501) OUT | GPIO 27 | power the PIR from 5 V; its output is 3.3 V-safe |
 | LDR | GPIO 34 | LDR to 3.3 V, 10 kΩ to GND; brighter = higher reading |
+| SOS push button | GPIO 14 | button between GPIO 14 and GND (internal pull-up, no resistor) |
 
 **Flash it:** Arduino IDE → Boards Manager → install *esp32 by Espressif* (core **3.x**) → board
 *ESP32 Dev Module* → upload. (On core 2.x, replace `ledcAttach` with the two lines in the comment.)
@@ -256,13 +282,15 @@ Use **Manual test** to check the lamp and buzzer.
 
 | Direction | Message | Meaning |
 |---|---|---|
-| PC → ESP32 | `SET 100 1` | lamp brightness % and buzzer on/off (sent on change and every 1 s) |
+| PC → ESP32 | `SET 100 1 1` | lamp brightness %, buzzer on/off, strobe on/off (sent on change and every 1 s) |
 | PC → ESP32 | `CFG 1500 20` | LDR dark threshold and stand-alone dim % (from Settings) |
-| ESP32 → PC | `STATE 1 812 100 1` | PIR, LDR (0–4095), current brightness, buzzer (every 0.5 s) |
-| ESP32 → PC | `READY sentinel-esp32 v1` | after boot |
+| ESP32 → PC | `STATE 1 812 100 1 1` | PIR, LDR (0–4095), current brightness, buzzer, strobe (every 0.5 s) |
+| ESP32 → PC | `SOS` | the SOS button was pressed |
+| ESP32 → PC | `READY sentinel-esp32 v2` | after boot |
 
 **Fail-safe:** if the PC stops talking for 5 s, the ESP32 runs on its own: dark + motion → 100 %,
-dark → dim, daylight → off. If the USB cable is unplugged and plugged back, the app reconnects by itself.
+dark → dim, daylight → off. An SOS press with no PC strobes the lamp at full power and sounds the
+buzzer for 60 s, so help is still visible and audible. If the USB cable is unplugged and plugged back, the app reconnects by itself.
 
 No ESP32? The app runs a **simulator**, so everything else works.
 
@@ -295,7 +323,13 @@ snapshot and a Google Maps link. **Automatic**: sends at once, limited by *Auto-
 | Night starts / ends | 18:30 / 06:00 | match local sunset/sunrise if there is no LDR |
 | Night brightness when quiet | 20 % | energy saving vs visibility |
 | Lingering after | 60 s | how long someone can stay at night before MEDIUM |
-| Keep evidence for | 30 days | older incidents and snapshots are deleted automatically |
+| Keep evidence for | 30 days | older incidents, snapshots and clips are deleted automatically |
+| Record video clips | on | ~10 s per incident (H.264 MP4, or WebM if H.264 isn't available) |
+| Camera tamper detection | on | turn off for a camera that is often moved on purpose |
+| Escalate after | 5 min | 0 = HIGH alerts always wait for an operator |
+| Lamp power / price / CO₂ factor | 60 W / ₹8 / 0.71 | for an accurate energy report |
+| Strobe the lamp on HIGH | on | turn off if flashing is not allowed where the light is installed |
+| SOS keeps HIGH for | 60 s | until an operator clears it |
 
 ---
 
@@ -353,7 +387,7 @@ Tests use a temporary data folder (`SENTINEL_DATA_DIR`) and never touch `data/`.
 ## 11. What is not done yet
 
 - **Real ESP32:** the firmware and protocol are written and the simulator works, but no physical board
-  has been connected yet. First test: flash, connect, run Manual test.
+  has been connected yet. First test: flash, connect, run Manual test, press the SOS button.
 - **Email / Telegram:** the code is in place; delivery needs real credentials in `.env` to verify.
 - **Behaviour rules on real footage:** tested with synthetic poses and a live webcam; tune the
   thresholds in `sentinel/behavior.py` with a few real clips (a scuffle, someone lying down).

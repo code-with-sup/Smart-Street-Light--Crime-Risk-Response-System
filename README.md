@@ -19,7 +19,7 @@ Video is analysed **on the computer itself**; nothing leaves it unless an alert 
 |---|---|---|---|---|
 | **LOW** | Street clear | Dim (20 %) at night, off by day | Off | — |
 | **MEDIUM** | Person or motion at night · crowd · someone lingering · several people running | 100 % | Off | Incident + snapshot |
-| **HIGH** | Weapon confirmed (2 of 3 frames) · possible fight · person down · hands raised near someone | 100 % | **On** | Incident + snapshot + alert |
+| **HIGH** | Weapon confirmed (2 of 3 frames) · possible fight · person down · hands raised near someone · **SOS button** | 100 %, strobing | **On** | Incident + snapshot + clip + alert |
 
 ## Quick start
 
@@ -55,7 +55,13 @@ No webcam? Play a video as the camera: `run.py --video street.mp4`.
 - 📊 LOW / MEDIUM / HIGH risk with clear reasons ("Weapon detected (68 %)", "Person #3 lingering 64 s")
 - 💡 Lamp brightness and 🚨 buzzer driven over USB serial to the ESP32 (or a built-in simulator)
 - 🌙 Day / night from the LDR sensor or the clock; 🚶 PIR motion at night
-- 📸 Incidents saved with snapshot evidence, review notes and false-alarm marking
+- 📸 Incidents saved with snapshot **and a 10-second video clip** (5 s before + 5 s after), review notes and false-alarm marking
+- 🆘 **SOS button** on the pole: instant HIGH, lamp strobe, buzzer and an immediate alert (works even if the PC is down)
+- ⚡ Lamp **strobes** while risk is HIGH
+- 📐 **Zones & tripwires** drawn on the camera: no-entry areas, lingering areas, one-way tripwires, night-only schedules
+- 🛡️ **Camera tamper detection**: covered / blinded (HIGH), blurred or turned away (MEDIUM)
+- 🔋 **Energy report**: kWh, money and CO₂ saved by smart dimming vs a normal lamp
+- ⏱️ **Alert escalation**: a HIGH alert nobody confirms within 5 min is sent automatically
 - 📨 Email / Telegram alerts, confirmed by an operator by default
 - 🗺️ GPS map of the light and incidents · 📈 analytics · 📄 PDF / CSV reports
 - 🌐 Control-room dashboard (day / night themes, works on phones) and a 3D landing page

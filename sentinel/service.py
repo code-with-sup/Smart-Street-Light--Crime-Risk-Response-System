@@ -16,11 +16,14 @@ import cv2
 from .alerts import Notifier
 from .behavior import BehaviorAnalyzer, Event
 from .camera import Camera
+from .clips import ClipRecorder
 from .config import DEFAULT_SETTINGS, EVIDENCE_DIR
 from .detection import MODELS, Detection, Detector, annotate
 from .hardware import HardwareLink
 from .risk import LEVELS, RiskEngine, RiskResult
 from .storage import Store
+from .tamper import TamperMonitor
+from .zones import ZoneMonitor, draw_zones, validate_zone
 
 log = logging.getLogger("sentinel.service")
 
@@ -32,7 +35,8 @@ RANGES = {
     "confidence": (0.05, 0.95), "weapon_confidence": (0.05, 0.95), "detect_interval_ms": (50, 2000),
     "ldr_dark_threshold": (0, 4095), "crowd_threshold": (2, 100), "loiter_seconds": (5, 3600),
     "low_brightness": (0, 100), "alert_cooldown_s": (0, 3600), "incident_cooldown_s": (5, 3600),
-    "evidence_retention_days": (1, 365), "camera_index": (0, 9),
+    "evidence_retention_days": (1, 365), "camera_index": (0, 9), "sos_hold_s": (10, 600),
+    "escalate_after_min": (0, 240), "lamp_watts": (1, 2000), "tariff_per_kwh": (0, 1000), "co2_kg_per_kwh": (0, 3),
 }
 CHOICES = {"alert_mode": ("manual", "auto"), "day_night_source": ("auto", "clock", "ldr"), "model": tuple(MODELS)}
 
@@ -67,6 +71,8 @@ def _coerce(key: str, value):
             raise SettingsError(f"{key} must be between {low} and {high}")
     if key in CHOICES and value not in CHOICES[key]:
         raise SettingsError(f"{key} must be one of {', '.join(CHOICES[key])}")
+    if key == "currency" and not 1 <= len(value) <= 4:
+        raise SettingsError("currency must be 1-4 characters, e.g. ₹ or USD")
     if key in ("night_start", "night_end") and not TIME_RE.match(value):
         raise SettingsError(f"{key} must be HH:MM (24-hour)")
     if key == "time_zone":
@@ -88,6 +94,8 @@ class Sentinel:
         self.detector_loading = True
         self.risk = RiskEngine()
         self.behavior = BehaviorAnalyzer()
+        self.tamper = TamperMonitor()
+        self.zone_monitor = ZoneMonitor()
         self.events: list[Event] = []
         self.result = RiskResult()
         self.hardware = HardwareLink()
@@ -110,6 +118,13 @@ class Sentinel:
         self._today_cache: tuple[float, int] = (0.0, 0)
         self._reset_scene = False
         self._last_fresh = 0.0
+        self.clips = ClipRecorder(EVIDENCE_DIR, self._clip_saved)
+        self._energy = {"t": 0.0, "day": "", "lamp_wh": 0.0, "baseline_wh": 0.0, "night_s": 0.0, "flushed": 0.0}
+        self._last_escalation_check = 0.0
+        self._energy_today: tuple[float, dict] = (0.0, {})
+        self._tamper_events: list[Event] = []
+        self._sos_until = 0.0   # SOS keeps risk HIGH until this time (or an operator clears it)
+        self._sos_new = False   # a press arrived this tick: always record an incident for it
 
     # ------------------------------------------------------------ lifecycle
     @property
@@ -124,12 +139,15 @@ class Sentinel:
             self.note("system", message if ok else f"ESP32: {message}")
         self._thread = threading.Thread(target=self._loop, name="sentinel", daemon=True)
         self._thread.start()
+        self.clips.start(self._clip_frame)
         self.note("system", "Sentinel started")
 
     def shutdown(self) -> None:
         self._running = False
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=3)  # so no tick can re-light the lamp after the "off" below
+        self.clips.stop()
+        self._flush_energy()
         self.camera.stop()
         self.hardware.clear_test()
         self.hardware.drive(0, False, people=0, is_night_clock=False)
@@ -151,6 +169,30 @@ class Sentinel:
 
     def change_model(self, model: str) -> None:
         threading.Thread(target=self._load_detector, args=(model,), name="detector-load", daemon=True).start()
+
+    def _clip_frame(self):
+        """Current camera frame with the latest boxes drawn, for the clip recorder (None when off)."""
+        if not self.camera.running:
+            return None
+        _frame_id, frame = self.camera.latest()
+        if frame is None:
+            return None
+        with self._lock:
+            detections, events = list(self.detections), list(self.events)
+        return self._overlay(frame, detections, events)
+
+    def _clip_saved(self, incident_id: int, name: str) -> None:
+        if self.store.incident(incident_id) is None:  # deleted while recording
+            (EVIDENCE_DIR / name).unlink(missing_ok=True)
+            return
+        self.store.set_clip(incident_id, name)
+        self.note("system", f"Video clip saved for incident #{incident_id}", incident_id=incident_id)
+
+    def clear_sos(self) -> None:
+        """Operator has responded: stop holding HIGH for the SOS (other threats still count)."""
+        if self._sos_until:
+            self._sos_until = 0.0
+            self.note("alert", "SOS cleared by operator")
 
     def camera_changed(self) -> None:
         """New camera or video: start tracking and risk timers fresh."""
@@ -184,17 +226,25 @@ class Sentinel:
             self._reset_scene = False
             self.risk.reset()
             self.behavior.reset()
+            self.tamper.reset()
+            self.zone_monitor.reset()
             if detector and detector.ready:
                 detector.reset_tracks()
         now = time.time()
+        if self.hardware.take_sos():
+            self._sos_until, self._sos_new = now + settings["sos_hold_s"], True
+            self.note("alert", "SOS button pressed on the street light", "HIGH")
         if self.camera.running and frame is not None and detector and detector.ready:
             if frame_id != last_frame:
                 began = time.perf_counter()
                 detections = detector.detect(frame, settings["confidence"], settings["weapon_confidence"])
                 self.inference_ms = (time.perf_counter() - began) * 1000
+                self._tamper_events = self.tamper.update(frame, now) if settings["tamper_detection"] else []
                 last_frame, self._last_fresh = frame_id, now
             elif now - self._last_fresh > STALE_FRAME_SECONDS:
                 detections, frame = [], None  # camera stalled: don't keep acting on an old frame
+            elif self._sos_new:
+                detections = list(self.detections)  # SOS can't wait for the next frame; reuse the last scene
             else:
                 # loop is faster than the camera: no new evidence, but keep the lamp heartbeat
                 # and housekeeping going (re-evaluating the same frame would double-count weapons)
@@ -208,6 +258,11 @@ class Sentinel:
                 self.camera.error = ""
 
         events = self.behavior.update(detections, now, self.camera.size) if settings["behaviour_analysis"] else []
+        if self.camera.running and frame is not None:
+            zone_events = self.zone_monitor.update(detections, settings["zones"], self.camera.size, now, self.is_night)
+            events = [*self._tamper_events, *zone_events, *events]
+        if now < self._sos_until:
+            events = [Event("sos", "SOS button pressed — help requested", "HIGH", confidence=1.0), *events]
         previous = self.result.level
         result = self.risk.evaluate(detections, events=events, is_night=self.is_night, motion=motion, settings=settings)
         with self._lock:
@@ -217,18 +272,29 @@ class Sentinel:
 
         if result.level != previous:
             self.note("level", f"Risk {previous} → {result.level}: {result.reasons[0]}", result.level)
-            if LEVELS.index(result.level) > LEVELS.index(previous):
-                self._record_incident(result, detections, frame)
+        if self._sos_new:  # every press is recorded and alerted, even if risk was already HIGH
+            self._sos_new = False
+            self._record_incident(result, detections, frame, sos=True)
+        elif result.level != previous and LEVELS.index(result.level) > LEVELS.index(previous):
+            self._record_incident(result, detections, frame)
         self._housekeeping(result, detections, now)
         return last_frame
 
     def _drive(self, result: RiskResult, detections: list[Detection]) -> None:
         people = sum(d.category == "person" for d in detections)
         self.hardware.configure(self.settings["ldr_dark_threshold"], self.settings["low_brightness"])
-        self.hardware.drive(result.brightness, result.buzzer, people=people, is_night_clock=self._clock_night())
+        strobe = result.level == "HIGH" and self.settings["strobe_on_high"]
+        self.hardware.drive(result.brightness, result.buzzer, people=people, is_night_clock=self._clock_night(), strobe=strobe)
 
     def _housekeeping(self, result: RiskResult, detections: list[Detection], now: float) -> None:
         settings = self.settings
+        self._account_energy(now)
+        if settings["escalate_after_min"] and now - self._last_escalation_check >= 10:
+            self._last_escalation_check = now
+            for incident in self.store.pending_high_before(now - settings["escalate_after_min"] * 60):
+                self.note("alert", f"No operator response to incident #{incident['id']} within "
+                                   f"{settings['escalate_after_min']} min: sending automatically", "HIGH", incident["id"])
+                self.dispatch_alert(incident["id"], confirmed=False, escalated=True)
         if self.camera.running and now - self._last_metric >= METRIC_INTERVAL:
             people = sum(d.category == "person" for d in detections)
             vehicles = sum(d.category == "vehicle" for d in detections)
@@ -239,6 +305,57 @@ class Sentinel:
             if removed:
                 self.note("system", f"Removed {removed} incidents older than {settings['evidence_retention_days']} days")
             self._last_purge = now
+
+    # -------------------------------------------------------------- energy
+    def _account_energy(self, now: float) -> None:
+        """Integrate lamp power over time, next to a normal lamp at full power for every night hour."""
+        e = self._energy
+        dt = min(now - e["t"], 2.0) if e["t"] else 0.0  # a gap (sleep, pause) is not counted as lamp time
+        e["t"] = now
+        day = datetime.fromtimestamp(now, self.tz).strftime("%Y-%m-%d")
+        if e["day"] and day != e["day"]:
+            self._flush_energy()
+        e["day"] = day
+        watts = self.settings["lamp_watts"]
+        e["lamp_wh"] += self.hardware.brightness / 100 * watts * dt / 3600
+        if self.is_night:
+            e["baseline_wh"] += watts * dt / 3600
+            e["night_s"] += dt
+        if now - e["flushed"] >= 60:
+            self._flush_energy()
+
+    def _flush_energy(self) -> None:
+        e = self._energy
+        if e["day"] and (e["lamp_wh"] or e["baseline_wh"]):
+            self.store.add_energy(e["day"], e["lamp_wh"], e["baseline_wh"], e["night_s"])
+        e["lamp_wh"] = e["baseline_wh"] = e["night_s"] = 0.0
+        e["flushed"] = time.time()
+
+    def energy_today(self) -> dict:
+        cached_at, value = self._energy_today
+        if time.time() - cached_at >= 10:
+            value = self._energy_summary([datetime.now(self.tz).strftime("%Y-%m-%d")])
+            self._energy_today = (time.time(), value)
+        return value
+
+    def _energy_summary(self, day_keys: list[str]) -> dict:
+        rows = {r["day"]: dict(r) for r in self.store.energy_since(day_keys[0])}
+        live = self._energy  # minute not yet written to the database
+        if live["day"] in day_keys:
+            row = rows.setdefault(live["day"], {"lamp_wh": 0.0, "baseline_wh": 0.0})
+            row["lamp_wh"] += live["lamp_wh"]
+            row["baseline_wh"] += live["baseline_wh"]
+        lamp = [round(rows.get(d, {}).get("lamp_wh", 0) / 1000, 4) for d in day_keys]
+        base = [round(rows.get(d, {}).get("baseline_wh", 0) / 1000, 4) for d in day_keys]
+        saved = max(0.0, sum(base) - sum(lamp))
+        s = self.settings
+        return {
+            "lamp_kwh": lamp, "baseline_kwh": base,
+            "saved_kwh": round(saved, 3), "saved_cost": round(saved * s["tariff_per_kwh"], 2),
+            "co2_kg": round(saved * s["co2_kg_per_kwh"], 2),
+            "saving_pct": round(100 * saved / sum(base), 1) if sum(base) else None,
+            "currency": s["currency"], "lamp_watts": s["lamp_watts"],
+        }
 
     def _clock_night(self) -> bool:
         now = datetime.now(self.tz).strftime("%H:%M")
@@ -254,17 +371,19 @@ class Sentinel:
         return self._clock_night(), "clock"
 
     # ----------------------------------------------------------- incidents
-    def _record_incident(self, result: RiskResult, detections: list[Detection], frame) -> None:
+    def _record_incident(self, result: RiskResult, detections: list[Detection], frame, sos: bool = False) -> None:
         now = time.time()
-        if now - self._last_incident.get(result.level, 0) < self.settings["incident_cooldown_s"]:
+        if not sos and now - self._last_incident.get(result.level, 0) < self.settings["incident_cooldown_s"]:
             return
         self._last_incident[result.level] = now
         snapshot = None
         if frame is not None:
             snapshot = f"{datetime.now(self.tz):%Y%m%d_%H%M%S}_{result.level.lower()}.jpg"
-            cv2.imwrite(str(EVIDENCE_DIR / snapshot), annotate(frame, detections, self.events), [cv2.IMWRITE_JPEG_QUALITY, 88])
+            cv2.imwrite(str(EVIDENCE_DIR / snapshot), self._overlay(frame, detections, self.events), [cv2.IMWRITE_JPEG_QUALITY, 88])
         people = sum(d.category == "person" for d in detections)
-        if result.weapon:
+        if sos:
+            label, confidence = "sos", 1.0
+        elif result.weapon:
             label, confidence = result.weapon.label, result.weapon.confidence
         elif result.event:
             label, confidence = result.event.label.split(" — ")[0].lower(), result.event.confidence
@@ -287,7 +406,12 @@ class Sentinel:
             snapshot=snapshot, lat=location.get("lat"), lng=location.get("lng"), alert_status=alert_status,
         )
         self.note("incident", f"Incident #{incident['id']}: {result.level} – {label}", result.level, incident["id"])
-        if alert_status == "pending" and self.settings["alert_mode"] == "auto":
+        if self.settings["record_clips"] and self.camera.running:
+            self.clips.capture(incident["id"], f"{datetime.now(self.tz):%Y%m%d_%H%M%S}_{result.level.lower()}_{incident['id']}")
+        if alert_status == "pending" and sos:
+            # a person asked for help: no AI judgement to confirm, so send at once in every mode
+            self.dispatch_alert(incident["id"], confirmed=False)
+        elif alert_status == "pending" and self.settings["alert_mode"] == "auto":
             if now - self._last_auto_alert >= self.settings["alert_cooldown_s"]:
                 self._last_auto_alert = now
                 self.dispatch_alert(incident["id"], confirmed=False)
@@ -297,7 +421,7 @@ class Sentinel:
                 self.note("alert", f"Auto-alert for incident #{incident['id']} held back by the cooldown "
                                    f"({wait} s left); send it from Incident review if needed", "HIGH", incident["id"])
 
-    def dispatch_alert(self, incident_id: int, confirmed: bool = True) -> dict:
+    def dispatch_alert(self, incident_id: int, confirmed: bool = True, escalated: bool = False) -> dict:
         incident = self.store.incident(incident_id)
         if incident is None:
             raise KeyError(incident_id)
@@ -305,7 +429,7 @@ class Sentinel:
         if not contacts:
             return self.store.update_incident(incident_id, alert_status="no_contacts")
         self.store.update_incident(incident_id, alert_status="sending")
-        subject, body = self._alert_text(incident, confirmed)
+        subject, body = self._alert_text(incident, confirmed, escalated)
         image = EVIDENCE_DIR / incident["snapshot"] if incident["snapshot"] else None
 
         def run() -> None:
@@ -322,7 +446,7 @@ class Sentinel:
         self.notifier.submit(run)
         return self.store.incident(incident_id)
 
-    def _alert_text(self, incident: dict, confirmed: bool) -> tuple[str, str]:
+    def _alert_text(self, incident: dict, confirmed: bool, escalated: bool = False) -> tuple[str, str]:
         when = datetime.fromtimestamp(incident["ts"], self.tz).strftime("%d %b %Y, %I:%M:%S %p %Z")
         location = self.settings["light_location"]
         lines = [f"Time: {when}"]
@@ -334,9 +458,16 @@ class Sentinel:
         lines.append(f"People in view: {incident['people']}")
         lines.extend(f"• {reason}" for reason in incident["reasons"])
         lines.append("")
-        lines.append("Confirmed by the Sentinel Street operator." if confirmed else
-                     "Automatic AI detection – not yet verified by a person.")
-        subject = f"⚠ Sentinel Street: {incident['level']} risk – {incident['label']}"
+        if incident["label"] == "sos":
+            lines.append("Someone pressed the SOS button on this street light and is asking for help.")
+        elif escalated:
+            lines.append(f"No operator responded within {self.settings['escalate_after_min']} min, so this was sent "
+                         "automatically. AI detection, not yet verified by a person.")
+        else:
+            lines.append("Confirmed by the Sentinel Street operator." if confirmed else
+                         "Automatic AI detection – not yet verified by a person.")
+        subject = ("🆘 Sentinel Street: SOS — help requested" if incident["label"] == "sos"
+                   else f"⚠ Sentinel Street: {incident['level']} risk – {incident['label']}")
         return subject, "\n".join(lines)
 
     # -------------------------------------------------------------- stream
@@ -350,7 +481,7 @@ class Sentinel:
             detections, events = list(self.detections), list(self.events)
         if cached and cached[0] == key:
             return cached[1]
-        ok, buffer = cv2.imencode(".jpg", annotate(frame, detections, events), [cv2.IMWRITE_JPEG_QUALITY, 80])
+        ok, buffer = cv2.imencode(".jpg", self._overlay(frame, detections, events), [cv2.IMWRITE_JPEG_QUALITY, 80])
         if not ok:
             return None
         data = buffer.tobytes()
@@ -378,7 +509,7 @@ class Sentinel:
         return {
             "time": time.time(),
             "camera": {"running": cam.running, "index": cam.index, "fps": round(cam.fps, 1), "mirror": cam.mirror,
-                       "size": cam.size},
+                       "size": cam.size, "health": self.tamper.status if cam.running else "off"},
             "detector": {
                 "loading": self.detector_loading, "ready": bool(detector and detector.ready),
                 "error": detector.error if detector else "", "models": detector.models if detector else [],
@@ -395,11 +526,15 @@ class Sentinel:
             "incidents_today": self.incidents_today(),
             "activity": activity,
             "alert_mode": self.settings["alert_mode"],
+            "sos": {"active": time.time() < self._sos_until, "until": self._sos_until},
+            "energy_today": self.energy_today(),
+            "zones_active": sorted(self.zone_monitor.active),
         }
 
     # ------------------------------------------------------------ settings
     def update_settings(self, values: dict) -> dict:
-        clean = {k: _coerce(k, v) for k, v in values.items() if k in DEFAULT_SETTINGS and k != "light_location"}
+        clean = {k: _coerce(k, v) for k, v in values.items()
+                 if k in DEFAULT_SETTINGS and k not in ("light_location", "zones")}  # those have their own endpoints
         self.settings = self.store.save_settings(clean)
         if "mirror" in clean:
             self.camera.mirror = clean["mirror"]
@@ -411,6 +546,27 @@ class Sentinel:
             self.note("system", f"Loading {self.settings['model']}…")
             self.change_model(self.settings["model"])
         return self.settings
+
+    def set_zones(self, raw_zones: list[dict]) -> list[dict]:
+        import uuid
+
+        if len(raw_zones) > 30:
+            raise SettingsError("At most 30 zones")
+        zones = []
+        for raw in raw_zones:
+            zone = validate_zone(raw)
+            zone["id"] = zone["id"] or uuid.uuid4().hex[:8]
+            zones.append(zone)
+        self.settings = self.store.save_settings({"zones": zones})
+        self.zone_monitor.reset()
+        self.note("system", f"Zones updated ({len(zones)})")
+        return zones
+
+    def _overlay(self, frame, detections, events):
+        """Zones underneath, then boxes, skeletons and event labels."""
+        if self.settings["zones"]:
+            frame = draw_zones(frame, self.settings["zones"], self.zone_monitor.active, self.is_night)
+        return annotate(frame, detections, events)
 
     def set_location(self, lat: float, lng: float, accuracy: float | None, label: str, source: str) -> dict:
         if not all(math.isfinite(v) for v in (lat, lng) + ((accuracy,) if accuracy is not None else ())):
@@ -473,4 +629,5 @@ class Sentinel:
                 "alerts_sent": self.store.count_alerts_sent(start.timestamp()),
             },
             "timeline": timeline,
+            "energy": self._energy_summary(day_keys),
         }

@@ -1,10 +1,11 @@
 """ESP32 street-light link over USB serial, with a simulator when no board is connected.
 
 Line protocol at 115200 baud (see firmware/esp32_street_light/esp32_street_light.ino):
-  PC  -> ESP32   SET <brightness 0-100> <buzzer 0|1>
+  PC  -> ESP32   SET <brightness 0-100> <buzzer 0|1> <strobe 0|1>
                  CFG <ldr dark threshold 0-4095> <standalone dim % 0-100>
                  PING
-  ESP32 -> PC    STATE <pir 0|1> <ldr 0-4095> <brightness> <buzzer>   (every 500 ms)
+  ESP32 -> PC    STATE <pir 0|1> <ldr 0-4095> <brightness> <buzzer> <strobe>   (every 500 ms)
+                 SOS                      (the SOS button on the pole was pressed)
                  READY <firmware name>
                  PONG
 If the ESP32 hears nothing for 5 s it falls back to local PIR + LDR lighting on its own, using the
@@ -57,8 +58,11 @@ class HardwareLink:
         self.ldr: int | None = None
         self.brightness = 0  # what the light is doing (reported by board, or simulated)
         self.buzzer = False
+        self.strobe = False
+        self._sos_pending = False
+        self.last_sos = 0.0
         self.last_seen = 0.0
-        self._sent: tuple[int, bool] | None = None
+        self._sent: tuple[int, bool, bool] | None = None
         self._sent_at = 0.0
         self._override: tuple[int, bool, float] | None = None
         self._cfg: tuple[int, int] | None = None
@@ -146,6 +150,7 @@ class HardwareLink:
                 self.ldr = int(parts[2])
                 self.brightness = int(parts[3])
                 self.buzzer = parts[4] == "1"
+                self.strobe = len(parts) >= 6 and parts[5] == "1"
                 self.last_seen = time.time()
             except ValueError:
                 pass
@@ -155,6 +160,19 @@ class HardwareLink:
             self._sent = self._cfg_sent = None  # board rebooted: resend config and the current command
         elif parts[0] == "PONG":
             self.last_seen = time.time()
+        elif parts[0] == "SOS":
+            self.press_sos()
+
+    # ---------------------------------------------------------------- SOS
+    def press_sos(self) -> None:
+        """The SOS button on the pole (or the dashboard's simulate button) was pressed."""
+        self._sos_pending = True
+        self.last_sos = time.time()
+
+    def take_sos(self) -> bool:
+        """True once per press; the service turns it into a HIGH incident."""
+        pending, self._sos_pending = self._sos_pending, False
+        return pending
 
     # ------------------------------------------------------------- output
     def test_output(self, brightness: int, buzzer: bool, seconds: float) -> None:
@@ -172,14 +190,14 @@ class HardwareLink:
     def override_active(self) -> bool:
         return self._override is not None and time.time() < self._override[2]
 
-    def drive(self, brightness: int, buzzer: bool, *, people: int, is_night_clock: bool) -> None:
+    def drive(self, brightness: int, buzzer: bool, *, people: int, is_night_clock: bool, strobe: bool = False) -> None:
         """Called by the service every loop with the risk engine's wanted output."""
         if self.override_active:
-            brightness, buzzer = self._override[0], self._override[1]
+            brightness, buzzer, strobe = self._override[0], self._override[1], False
         else:
             self._override = None
         if self.mode == "simulator":
-            self.brightness, self.buzzer = brightness, buzzer
+            self.brightness, self.buzzer, self.strobe = brightness, buzzer, strobe
             self.pir = people > 0
             base = 650 if is_night_clock else 3200
             self.ldr = max(0, min(4095, base + random.randint(-60, 60)))
@@ -188,10 +206,10 @@ class HardwareLink:
         if self._cfg is not None and self._cfg != self._cfg_sent:
             self._write(f"CFG {self._cfg[0]} {self._cfg[1]}")
             self._cfg_sent = self._cfg
-        wanted = (brightness, buzzer)
+        wanted = (brightness, buzzer, strobe)
         now = time.time()
         if wanted != self._sent or now - self._sent_at >= HEARTBEAT_SECONDS:
-            self._write(f"SET {brightness} {int(buzzer)}")
+            self._write(f"SET {brightness} {int(buzzer)} {int(strobe)}")
             self._sent, self._sent_at = wanted, now
 
     def _write(self, command: str) -> None:
@@ -208,5 +226,5 @@ class HardwareLink:
         return {
             "mode": self.mode, "port": self.port, "online": self.online, "firmware": self.firmware,
             "error": self.error, "pir": self.pir, "ldr": self.ldr, "brightness": self.brightness,
-            "buzzer": self.buzzer, "last_seen": self.last_seen, "override": self.override_active,
+            "buzzer": self.buzzer, "strobe": self.strobe, "last_seen": self.last_seen, "override": self.override_active,
         }

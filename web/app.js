@@ -216,7 +216,10 @@ function onLive(d) {
   if (prev && !baseline) {
     for (const ev of fresh) {
       if (ev.kind === "incident") toast(ev.text, ev.level === "HIGH" ? "alert" : "ok", ev.level === "HIGH" ? 7000 : 4000);
-      if (ev.kind === "alert") toast(ev.text, ev.text.includes("sent") ? "ok" : "error", 5000);
+      if (ev.kind === "alert") {
+        const sending = /^Alert for incident/.test(ev.text);
+        toast(ev.text, sending ? (ev.text.includes(": sent") ? "ok" : "error") : ev.level === "HIGH" ? "alert" : "ok", 6000);
+      }
     }
   }
   if (d.activity.length) S.seenActivity = Math.max(S.seenActivity, d.activity[0].id);
@@ -253,6 +256,7 @@ function stageHTML({ fit = false, tall = false, showcase = false } = {}) {
         <div class="hud-metric"><div class="label">Buzzer</div><div class="v" data-hud="buzzer">—</div></div>
         <div class="hud-metric"><div class="label">Mode</div><div class="v" data-hud="night">—</div></div>
         <div class="hud-controls">
+          <button class="btn sm danger solid" data-act="sos-clear" title="Operator has responded" hidden>${ic("check")} Clear SOS</button>
           <button class="btn sm" data-act="cam-stop" title="Stop camera">${ic("stop")} Stop</button>
           <button class="btn sm" data-act="cam-switch" title="Use the next camera">${ic("switch")}</button>
           <button class="btn sm" data-act="cam-mirror" title="Mirror the image">${ic("flip")}</button>
@@ -301,6 +305,8 @@ function updateStage(root, d) {
   img.hidden = !on || showcase;
   stage.classList.toggle("live", on && !showcase);
   stage.dataset.level = d.risk.level;
+  stage.classList.toggle("strobe", !!d.hardware.strobe);
+  $$('[data-act="sos-clear"]', stage).forEach((b) => { b.hidden = !(d.sos && d.sos.active); });
   stage.dataset.night = d.night.is_night ? "1" : "0"; // the illustrated street follows real day / night
   setLamp($(".scene", stage), d.hardware.brightness / 100);
   const h = (k) => $(`[data-hud="${k}"]`, stage);
@@ -331,6 +337,8 @@ const ACTIONS = {
   "cam-stop": (btn) => busy(btn, async () => { await api("/api/camera/stop", { method: "POST" }); }),
   "cam-switch": (btn) => busy(btn, async () => { const r = await api("/api/camera/switch", { method: "POST" }); toast(r.message, r.ok ? "ok" : "error"); }),
   "cam-mirror": async () => { const r = await api("/api/camera/mirror", { method: "POST", body: { mirror: !(S.live && S.live.camera.mirror) } }); toast(r.mirror ? "Image mirrored" : "Mirror off"); },
+  "sos-clear": (btn) => busy(btn, async () => { await api("/api/sos/clear", { method: "POST" }); toast("SOS cleared"); }),
+  "sos-sim": (btn) => busy(btn, async () => { await api("/api/sos/simulate", { method: "POST" }); }),
   "cam-full": (btn) => { const stage = btn.closest(".stage"); if (stage && stage.requestFullscreen) stage.requestFullscreen(); },
 };
 
@@ -350,7 +358,7 @@ function incidentCard(item) {
   const thumb = item.snapshot_url ? `style="background-image:url('${item.snapshot_url}')"` : "";
   const [alertText, alertTone] = ALERT_STATUS[item.alert_status] || ["", ""];
   return `<div class="card inc-card" data-incident="${item.id}" tabindex="0" role="button" aria-label="Open incident ${item.id}: ${esc(item.label)}, ${item.level}">
-    <div class="inc-thumb" ${thumb}>${item.snapshot_url ? "" : `<div class="noimg">${ic("image")}</div>`}${levelBadge(item.level)}</div>
+    <div class="inc-thumb" ${thumb}>${item.snapshot_url ? "" : `<div class="noimg">${ic("image")}</div>`}${levelBadge(item.level)}${item.clip_url ? `<span class="badge clip-badge">${ic("play")} Clip</span>` : ""}</div>
     <div class="inc-body">
       <div class="inc-title">${esc(item.label)}</div>
       <div class="inc-meta"><span>${fmtDateTime(item.ts)}</span>·<span>${STATUS_LABEL[item.status]}</span>
@@ -387,7 +395,13 @@ async function openIncident(id, onChange) {
   const maps = item.lat != null ? `<a href="https://maps.google.com/?q=${item.lat},${item.lng}" target="_blank" rel="noopener">${item.lat.toFixed(5)}, ${item.lng.toFixed(5)} ${ic("external")}</a>` : '<span class="faint">Not set</span>';
   openModal(`
     <div class="modal-grid">
-      ${item.snapshot_url ? `<img src="${item.snapshot_url}" alt="Evidence snapshot">` : `<div class="empty" style="background:var(--feed-bg)">${ic("image")}<p>No snapshot (camera was off)</p></div>`}
+      <div class="evidence">
+        ${item.clip_url ? `<video src="${item.clip_url}" controls autoplay muted loop playsinline aria-label="Evidence clip"></video>`
+          : item.snapshot_url ? `<img src="${item.snapshot_url}" alt="Evidence snapshot">`
+          : `<div class="empty" style="background:var(--feed-bg)">${ic("image")}<p>No snapshot (camera was off)</p></div>`}
+        ${item.clip_url && item.snapshot_url ? `<div class="evidence-switch segmented"><button class="on" data-ev="clip">${ic("video")} Clip</button><button data-ev="photo">${ic("image")} Photo</button></div>` : ""}
+        ${item.clip_url ? `<a class="btn sm evidence-dl" href="${item.clip_url}" download>${ic("download")} Clip</a>` : ""}
+      </div>
       <div class="stack" style="padding:22px;gap:16px">
         <div class="row">${levelBadge(item.level)}<span class="badge">${STATUS_LABEL[item.status]}</span><span class="spacer" style="flex:1"></span>
           <button class="icon-btn" data-close aria-label="Close">${ic("x")}</button></div>
@@ -413,6 +427,16 @@ async function openIncident(id, onChange) {
     const t = event.target.closest("button");
     if (!t) return;
     if (t.hasAttribute("data-close")) return closeModal();
+    if (t.dataset.ev) {
+      const box = $(".evidence", $("#modal"));
+      const media = $("video, img", box);
+      const next = t.dataset.ev === "clip"
+        ? Object.assign(document.createElement("video"), { src: item.clip_url, controls: true, autoplay: true, muted: true, loop: true, playsInline: true })
+        : Object.assign(document.createElement("img"), { src: item.snapshot_url, alt: "Evidence snapshot" });
+      media.replaceWith(next);
+      $$(".evidence-switch button", box).forEach((b) => b.classList.toggle("on", b === t));
+      return;
+    }
     if (t.dataset.status) {
       await api(`/api/incidents/${id}`, { method: "PATCH", body: { status: t.dataset.status } });
       toast(`Marked as ${STATUS_LABEL[t.dataset.status].toLowerCase()}`);
@@ -509,6 +533,7 @@ PAGES.overview = {
         <div class="stack">
           ${stat("ov-today", "Incidents today", "alert", "amber")}
           ${stat("ov-hw", "Street light link", "plug", "cyan")}
+          ${stat("ov-energy", "Energy saved today", "bulb", "green")}
         </div>
       </div>
       <div class="card">
@@ -546,6 +571,10 @@ PAGES.overview = {
     const hw = d.hardware;
     $("#ov-hw").textContent = hw.mode === "serial" ? (hw.online ? "ESP32" : "Offline") : "Simulator";
     $("#ov-hw-sub").textContent = hw.mode === "serial" ? `${hw.port} · ${hw.online ? "reporting" : "no data"}` : "Connect the ESP32 in Sensors & lights";
+    const en = d.energy_today || {};
+    $("#ov-energy").textContent = en.saving_pct == null ? "—" : `${en.saving_pct}%`;
+    $("#ov-energy-sub").textContent = en.saving_pct == null ? "Counts from tonight's first dark hour"
+      : `${en.saved_kwh} kWh · ${en.currency}${en.saved_cost} · ${en.co2_kg} kg CO₂ vs a normal lamp`;
     const act = $("#ov-activity");
     const top = d.activity.length ? d.activity[0].id : 0;
     if (act.dataset.top !== String(top)) { act.dataset.top = String(top); act.innerHTML = activityHTML(d.activity); }
@@ -565,6 +594,7 @@ PAGES.live = {
           <div class="card">
             <div class="card-head"><span class="chip-icon">${ic("cpu")}</span><div><h2>AI detector</h2><div class="sub" id="lv-models">—</div></div></div>
             <div class="card-body stack" style="gap:14px">
+              <div class="row" style="justify-content:space-between"><span class="label">Camera health</span><span class="badge" id="lv-health">—</span></div>
               <div class="grid g-3" style="gap:10px">
                 <div><div class="label">Camera FPS</div><div class="strong num" id="lv-fps">—</div></div>
                 <div><div class="label">Inference</div><div class="strong num" id="lv-ms">—</div></div>
@@ -581,12 +611,34 @@ PAGES.live = {
             <div class="card-head"><span class="chip-icon cyan">${ic("eye")}</span><div><h2>In view now</h2><div class="sub" id="lv-count">—</div></div></div>
             <div class="card-body"><ul class="det-list" id="lv-dets"></ul></div>
           </div>
+          <div class="card">
+            <div class="card-head"><span class="chip-icon amber">${ic("pin")}</span><div><h2>Zones & tripwires</h2><div class="sub" id="zn-sub">Draw on the live camera</div></div></div>
+            <div class="card-body stack" style="gap:12px">
+              <div class="row wrap">
+                <button class="btn sm" data-zone-draw="area">${ic("plus")} Draw area</button>
+                <button class="btn sm" data-zone-draw="line">${ic("plus")} Draw tripwire</button>
+              </div>
+              <div id="zn-draft" hidden></div>
+              <ul class="det-list" id="zn-list"></ul>
+            </div>
+          </div>
         </div>
       </div>`;
     const loadReel = () => api("/api/incidents?limit=20", { quiet: true }).then((items) => {
       if (S.page === "live") startReel($(".stage", root), incidentSlides(items, loadReel));
     }).catch(() => {});
     loadReel();
+    this.zones = (S.settings.zones || []).map((z) => ({ ...z }));
+    this.renderZones();
+    root.addEventListener("click", (e) => this.onZoneClick(e));
+    root.addEventListener("change", (e) => {
+      if (e.target.dataset.zoneToggle) {
+        const zone = this.zones.find((z) => z.id === e.target.dataset.zoneToggle);
+        zone.enabled = e.target.checked;
+        this.saveZones(zone.enabled ? `${zone.name} on` : `${zone.name} paused`);
+      }
+    });
+    S.cleanup.push(() => this.stopDrawing());
     $$("[data-live]", root).forEach((input) => {
       input.addEventListener("input", () => { input.nextElementSibling.textContent = pct(+input.value); });
       input.addEventListener("change", async () => {
@@ -595,11 +647,155 @@ PAGES.live = {
       });
     });
   },
+  /* ---------------------------------------------------------- zones */
+  zoneSummary(z) {
+    if (z.type === "line") return `Tripwire · ${{ any: "either way", a_to_b: "with the arrow", b_to_a: "against the arrow" }[z.direction]}`;
+    return z.rule === "loiter" ? `Area · lingering over ${z.seconds} s` : "Area · no entry";
+  },
+  renderZones() {
+    const list = $("#zn-list");
+    if (!list) return;
+    $("#zn-sub").textContent = this.zones.length ? `${this.zones.length} zone${this.zones.length === 1 ? "" : "s"} · drawn on the video` : "Draw on the live camera";
+    list.innerHTML = this.zones.length ? this.zones.map((z) => `
+      <li>
+        <label class="toggle" title="On / off"><input type="checkbox" data-zone-toggle="${z.id}" ${z.enabled !== false ? "checked" : ""}><span></span></label>
+        <div style="flex:1;min-width:0"><div class="strong">${esc(z.name)}</div>
+          <div class="small muted">${this.zoneSummary(z)} · ${z.schedule === "night" ? "night only" : "always"}</div></div>
+        ${levelBadge(z.level)}
+        <button class="icon-btn" style="width:30px;height:30px" data-zone-delete="${z.id}" aria-label="Delete ${esc(z.name)}">${ic("trash")}</button>
+      </li>`).join("")
+      : `<li class="muted">No zones yet. Draw an area (e.g. an ATM, a closed park) or a tripwire (e.g. a gate).</li>`;
+  },
+  async saveZones(message) {
+    const saved = await api("/api/zones", { method: "PUT", body: this.zones });
+    this.zones = saved.map((z) => ({ ...z }));
+    S.settings.zones = saved;
+    this.renderZones();
+    if (message) toast(message);
+  },
+  async onZoneClick(e) {
+    const draw = e.target.closest("[data-zone-draw]");
+    if (draw) return this.startDrawing(draw.dataset.zoneDraw);
+    const del = e.target.closest("[data-zone-delete]");
+    if (del) {
+      const zone = this.zones.find((z) => z.id === del.dataset.zoneDelete);
+      if (!confirm(`Delete zone "${zone.name}"?`)) return;
+      this.zones = this.zones.filter((z) => z !== zone);
+      return this.saveZones("Zone deleted");
+    }
+    const act = e.target.closest("[data-zone-act]");
+    if (act && act.dataset.zoneAct === "finish") return this.finishDrawing();
+    if (act && act.dataset.zoneAct === "cancel") return this.stopDrawing();
+    if (act && act.dataset.zoneAct === "save") return this.saveDraft();
+  },
+  // where the camera picture actually is inside the stage (object-fit: contain letterboxes it)
+  imageRect() {
+    const img = $(".stage-media img");
+    if (!img || img.hidden || !img.naturalWidth) return null;
+    const box = img.getBoundingClientRect();
+    const scale = Math.min(box.width / img.naturalWidth, box.height / img.naturalHeight);
+    const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+    return { left: box.left + (box.width - w) / 2, top: box.top + (box.height - h) / 2, width: w, height: h };
+  },
+  startDrawing(type) {
+    if (!S.live || !S.live.camera.running || !this.imageRect()) {
+      toast("Start the camera first, so you can draw on the real view", "error");
+      return;
+    }
+    this.stopDrawing();
+    const stage = $(".stage");
+    stage.classList.add("drawing");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("zone-draw");
+    svg.setAttribute("viewBox", "0 0 1000 1000");
+    svg.setAttribute("preserveAspectRatio", "none");
+    stage.append(svg);
+    this.draft = { type, points: [], svg };
+    this.placeOverlay();
+    svg.addEventListener("click", (e) => {
+      const r = svg.getBoundingClientRect();
+      const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+      this.draft.points.push([+x.toFixed(4), +y.toFixed(4)]);
+      if (type === "line" && this.draft.points.length === 2) this.finishDrawing();
+      else this.drawDraft();
+    });
+    this.resizeHandler = () => this.placeOverlay();
+    window.addEventListener("resize", this.resizeHandler);
+    $("#zn-draft").hidden = false;
+    $("#zn-draft").innerHTML = `<div class="callout"><span>${ic("info")}</span><div class="small">${type === "area"
+      ? "Click the corners of the area on the camera image. Mark where people's <b>feet</b> would be. Then press Finish."
+      : "Click two points on the camera image to draw the tripwire."}</div></div>
+      <div class="row" style="margin-top:8px">${type === "area" ? `<button class="btn sm primary" data-zone-act="finish">${ic("check")} Finish</button>` : ""}
+      <button class="btn sm" data-zone-act="cancel">Cancel</button></div>`;
+    this.drawDraft();
+  },
+  placeOverlay() {
+    const rect = this.imageRect(), stage = $(".stage");
+    if (!rect || !this.draft || !stage) return;
+    const s = stage.getBoundingClientRect();
+    Object.assign(this.draft.svg.style, { left: `${rect.left - s.left}px`, top: `${rect.top - s.top}px`, width: `${rect.width}px`, height: `${rect.height}px` });
+  },
+  drawDraft() {
+    const { svg, points, type } = this.draft;
+    const p = points.map(([x, y]) => `${x * 1000},${y * 1000}`).join(" ");
+    svg.innerHTML = `${points.length > 1 ? (type === "area"
+        ? `<polygon points="${p}" class="zd-shape"/>` : `<polyline points="${p}" class="zd-line"/>`) : ""}
+      ${points.map(([x, y]) => `<circle cx="${x * 1000}" cy="${y * 1000}" r="9" class="zd-dot"/>`).join("")}`;
+  },
+  finishDrawing() {
+    const d = this.draft;
+    if (!d) return;
+    if (d.type === "area" && d.points.length < 3) return toast("An area needs at least 3 corners", "error");
+    const points = d.points;
+    const type = d.type;
+    this.stopDrawing();
+    this.pending = { type, points };
+    $("#zn-draft").hidden = false;
+    $("#zn-draft").innerHTML = `<form class="stack" style="gap:10px" onsubmit="return false">
+      <div class="field"><label for="zd-name">Name</label><input class="input" id="zd-name" maxlength="40" value="${type === "area" ? "Area" : "Tripwire"} ${this.zones.length + 1}"></div>
+      ${type === "area" ? `
+        <div class="field"><label for="zd-rule">Rule</label><select class="input" id="zd-rule"><option value="no_entry">No entry: alarm when anyone steps inside</option><option value="loiter">Lingering: alarm when someone stays too long</option></select></div>
+        <div class="field" id="zd-sec-field" hidden><label for="zd-sec">Lingering after (seconds)</label><input class="input" id="zd-sec" type="number" min="3" max="3600" value="30"></div>`
+      : `<div class="field"><label for="zd-dir">Direction</label><select class="input" id="zd-dir"><option value="any">Either way</option><option value="a_to_b">Only with the arrow</option><option value="b_to_a">Only against the arrow</option></select>
+          <div class="hint">The arrow is drawn on the video after saving.</div></div>`}
+      <div class="grid g-2" style="gap:10px">
+        <div class="field"><label for="zd-level">Level</label><select class="input" id="zd-level"><option value="MEDIUM">MEDIUM (light 100%)</option><option value="HIGH">HIGH (buzzer, alert)</option></select></div>
+        <div class="field"><label for="zd-sched">Active</label><select class="input" id="zd-sched"><option value="always">Always</option><option value="night">Night only</option></select></div>
+      </div>
+      <div class="row"><button class="btn sm primary" data-zone-act="save">${ic("save")} Save zone</button><button class="btn sm" data-zone-act="cancel">Cancel</button></div>
+    </form>`;
+    const rule = $("#zd-rule");
+    if (rule) rule.addEventListener("change", () => { $("#zd-sec-field").hidden = rule.value !== "loiter"; });
+  },
+  async saveDraft() {
+    const p = this.pending;
+    if (!p) return;
+    const zone = { type: p.type, points: p.points, name: $("#zd-name").value, level: $("#zd-level").value, schedule: $("#zd-sched").value, enabled: true };
+    if (p.type === "area") Object.assign(zone, { rule: $("#zd-rule").value, seconds: +($("#zd-sec") ? $("#zd-sec").value : 30) });
+    else zone.direction = $("#zd-dir").value;
+    this.zones.push(zone);
+    try { await this.saveZones(`Zone "${zone.name}" saved`); } catch { this.zones.pop(); return; }
+    this.pending = null;
+    $("#zn-draft").hidden = true;
+  },
+  stopDrawing() {
+    if (this.draft) { this.draft.svg.remove(); this.draft = null; }
+    if (this.resizeHandler) { window.removeEventListener("resize", this.resizeHandler); this.resizeHandler = null; }
+    const stage = $(".stage");
+    if (stage) stage.classList.remove("drawing");
+    this.pending = null;
+    const box = $("#zn-draft");
+    if (box) { box.hidden = true; box.innerHTML = ""; }
+  },
   update(d) {
     updateStage($("#page"), d);
     const det = d.detector;
     $("#lv-models").textContent = det.ready ? `${det.models.join(" + ")} · tracking ${det.tracking ? "on" : "off"}` : det.loading ? "Loading model…" : det.error || "Not available";
     $("#lv-fps").textContent = d.camera.running ? d.camera.fps.toFixed(1) : "—";
+    const health = d.camera.health || "off";
+    const healthEl = $("#lv-health");
+    healthEl.className = `badge ${health === "ok" ? "green" : health === "covered" ? "red" : health === "off" ? "" : "amber"}`;
+    healthEl.textContent = { ok: "OK", off: "Camera off", covered: "Covered / blinded", blurred: "Blurred", moved: "View moved" }[health] || health;
     $("#lv-ms").textContent = d.camera.running && det.ready ? `${det.inference_ms} ms` : "—";
     $("#lv-dev").textContent = det.device ? det.device.toUpperCase() : "—";
     $("#lv-count").textContent = d.camera.running ? `${d.counts.person} people · ${d.counts.vehicle} vehicles · ${d.counts.weapon} weapons` : "Camera off";
@@ -923,6 +1119,12 @@ PAGES.sensors = {
                 <select class="input" id="t-secs" style="width:auto"><option value="3">3 s</option><option value="5" selected>5 s</option><option value="10">10 s</option></select>
                 <button class="btn primary" id="t-run">${ic("play")} Run test</button>
               </div>
+              <div class="row wrap" style="border-top:1px solid var(--border);padding-top:14px">
+                <span class="chip-icon red">${ic("bell")}</span>
+                <div style="flex:1;min-width:180px"><div class="strong">SOS button</div><div class="small muted" id="sos-status">Not pressed</div></div>
+                <button class="btn sm danger solid" data-act="sos-sim">${ic("alert")} Simulate SOS press</button>
+                <button class="btn sm" data-act="sos-clear" id="sos-clear-btn" hidden>${ic("check")} Clear SOS</button>
+              </div>
               <div class="row wrap">
                 <button class="btn sm" data-quick="0,0">Light off</button>
                 <button class="btn sm" data-quick="20,0">Dim 20%</button>
@@ -951,6 +1153,7 @@ PAGES.sensors = {
           <tr><td class="strong">Street light LED</td><td class="mono">GPIO 25</td><td class="muted">Through a transistor/MOSFET for anything brighter than a single LED. PWM dimming.</td></tr>
           <tr><td class="strong">Piezo buzzer</td><td class="mono">GPIO 26</td><td class="muted">Active buzzer, or passive driven with a tone.</td></tr>
           <tr><td class="strong">PIR motion sensor</td><td class="mono">GPIO 27</td><td class="muted">HC-SR501 OUT pin. Power from 5 V, output is 3.3 V safe.</td></tr>
+          <tr><td class="strong">SOS push button</td><td class="mono">GPIO 14</td><td class="muted">Button to GND (internal pull-up). Works even if the PC is off: the lamp strobes and the buzzer sounds for 60 s.</td></tr>
           <tr><td class="strong">LDR</td><td class="mono">GPIO 34</td><td class="muted">Voltage divider with a 10 kΩ resistor to 3.3 V. Brighter = higher value.</td></tr>
         </tbody></table></div>
         <div class="card-body small muted" style="border-top:1px solid var(--border)">
@@ -997,6 +1200,11 @@ PAGES.sensors = {
       <dt>Last report</dt><dd>${hw.last_seen ? ago(hw.last_seen) : "never"}</dd>
       ${hw.error ? `<dt>Error</dt><dd style="color:var(--high)">${esc(hw.error)}</dd>` : ""}`;
     setLamp($("#lampsc"), hw.brightness / 100);
+    $(".lamp-stage").classList.toggle("strobe", !!hw.strobe);
+    const sosActive = d.sos && d.sos.active;
+    $("#sos-status").textContent = sosActive ? `ACTIVE: HIGH risk held until ${fmtTime(d.sos.until)} or cleared` : "Not pressed";
+    $("#sos-status").style.color = sosActive ? "var(--high)" : "";
+    $("#sos-clear-btn").hidden = !sosActive;
     tween($("#lamp-val"), hw.brightness, (v) => `${Math.round(v)}%`);
     const buzz = $("#lamp-buzzer");
     buzz.className = `badge buzz ${hw.buzzer ? "red" : ""}`;
@@ -1005,6 +1213,7 @@ PAGES.sensors = {
     $("#lamp-kv").innerHTML = `
       <dt>Brightness</dt><dd>${hw.brightness}%</dd>
       <dt>Buzzer</dt><dd>${hw.buzzer ? '<span class="badge red">ON</span>' : "Off"}</dd>
+      <dt>Strobe</dt><dd>${hw.strobe ? '<span class="badge red">Flashing</span>' : "Off"}</dd>
       <dt>PIR motion</dt><dd>${hw.pir ? '<span class="badge amber">Motion</span>' : "Still"}</dd>
       <dt>Day / night</dt><dd>${d.night.is_night ? "Night" : "Day"} <span class="faint small">(${d.night.source === "ldr" ? "LDR" : "clock"})</span></dd>`;
     const ldr = hw.ldr;
@@ -1024,6 +1233,18 @@ PAGES.analytics = {
       <div class="grid g-2">
         <div class="card"><div class="card-head"><h3>Incidents per day</h3></div><div class="card-body"><div class="chart-box"><canvas id="c-day"></canvas></div></div></div>
         <div class="card"><div class="card-head"><h3>By hour of day</h3></div><div class="card-body"><div class="chart-box"><canvas id="c-hour"></canvas></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="chip-icon green">${ic("bulb")}</span><div><h2>Energy</h2><div class="sub" id="an-energy-sub">Smart dimming vs a normal lamp at full power all night</div></div></div>
+        <div class="card-body">
+          <div class="grid g-4" style="gap:12px;margin-bottom:16px">
+            <div><div class="label">Saved</div><div class="stat-value" id="en-kwh">—</div></div>
+            <div><div class="label">Money saved</div><div class="stat-value" id="en-cost">—</div></div>
+            <div><div class="label">CO₂ avoided</div><div class="stat-value" id="en-co2">—</div></div>
+            <div><div class="label">Saving</div><div class="stat-value" id="en-pct">—</div></div>
+          </div>
+          <div class="chart-box sm"><canvas id="c-energy"></canvas></div>
+        </div>
       </div>
       <div class="grid g-2">
         <div class="card"><div class="card-head"><h3>What was detected</h3></div><div class="card-body"><div class="chart-box sm"><canvas id="c-label"></canvas></div></div></div>
@@ -1060,6 +1281,16 @@ PAGES.analytics = {
     S.charts.push(new Chart($("#c-label"), { type: "doughnut", data: { labels: a.by_label.length ? a.by_label.map((x) => x[0]) : ["No incidents"],
       datasets: [{ data: a.by_label.length ? a.by_label.map((x) => x[1]) : [1], backgroundColor: a.by_label.length ? palette : [cssVar("--surface-3")], borderWidth: 0 }] },
     options: { ...base, cutout: "68%", plugins: { legend: { position: "right", labels: { boxWidth: 10, boxHeight: 10 } } } } }));
+    const en = a.energy;
+    $("#en-kwh").textContent = `${en.saved_kwh} kWh`;
+    $("#en-cost").textContent = `${en.currency}${en.saved_cost}`;
+    $("#en-co2").textContent = `${en.co2_kg} kg`;
+    $("#en-pct").textContent = en.saving_pct == null ? "—" : `${en.saving_pct}%`;
+    $("#an-energy-sub").textContent = `Smart dimming vs a normal ${en.lamp_watts} W lamp at full power all night`;
+    S.charts.push(new Chart($("#c-energy"), { type: "bar", data: { labels, datasets: [
+      { label: "Normal lamp (kWh)", data: en.baseline_kwh, backgroundColor: cssVar("--faint"), borderRadius: 4 },
+      { label: "Sentinel lamp (kWh)", data: en.lamp_kwh, backgroundColor: low, borderRadius: 4 }] },
+    options: { ...base, scales: { x: axes.x, y: { ...axes.y, ticks: {} } } } }));
     const tl = a.timeline;
     S.charts.push(new Chart($("#c-line"), { type: "line", data: { labels: tl.map((p) => fmt(p.ts, { hour: "2-digit", minute: "2-digit", hour12: false })), datasets: [
       { label: "People", data: tl.map((p) => p.people), borderColor: acc2, backgroundColor: acc2 + "22", fill: true, tension: 0.35, pointRadius: 0 },
@@ -1149,6 +1380,8 @@ PAGES.settings = {
         ${num("detect_interval_ms", "Detection interval (ms)", "Lower = faster reaction, more CPU", 'min="50" max="2000" step="50"')}
         ${num("camera_index", "Camera number", "0 = built-in, 1+ = USB webcams", 'min="0" max="9"')}
         <div class="field"><label for="s-mirror">Mirror image</label><label class="toggle"><input type="checkbox" id="s-mirror" data-key="mirror" ${s.mirror ? "checked" : ""}><span></span></label></div>
+        <div class="field"><label for="s-tamper_detection">Camera tamper detection</label><label class="toggle"><input type="checkbox" id="s-tamper_detection" data-key="tamper_detection" ${s.tamper_detection ? "checked" : ""}><span></span></label>
+          <div class="hint">Alarm if the camera is covered, blurred or turned away</div></div>
         <div class="field"><label for="s-behaviour_analysis">Crime behaviour analysis</label><label class="toggle"><input type="checkbox" id="s-behaviour_analysis" data-key="behaviour_analysis" ${s.behaviour_analysis ? "checked" : ""}><span></span></label>
           <div class="hint">Body-pose cues: possible fight, person down, hands raised near someone, people running</div></div></div>`)}
       ${section("shield", "amber", "Risk rules", "When LOW turns into MEDIUM (HIGH is always a confirmed weapon)", `<div class="form-grid">
@@ -1158,12 +1391,22 @@ PAGES.settings = {
         <div class="field"><label for="s-night_end">Night ends</label><input class="input" type="time" id="s-night_end" data-key="night_end" value="${s.night_end}"></div>
         ${select("day_night_source", "Decide day/night from", [["auto", "LDR if connected, else clock"], ["clock", "Clock only"], ["ldr", "LDR sensor only"]])}
         ${num("ldr_dark_threshold", "LDR dark threshold", "0–4095; below this is night", 'min="0" max="4095"')}</div>`)}
-      ${section("bulb", "green", "Lighting", "What the street light does at LOW risk", `<div class="form-grid">${range("low_brightness", "Night brightness when quiet", 0, 100, 5, false, "MEDIUM and HIGH always use 100%")}</div>`)}
+      ${section("bulb", "green", "Lighting", "What the street light does at each risk level", `<div class="form-grid">${range("low_brightness", "Night brightness when quiet", 0, 100, 5, false, "MEDIUM and HIGH always use 100%")}
+        <div class="field"><label for="s-strobe_on_high">Strobe the lamp on HIGH</label><label class="toggle"><input type="checkbox" id="s-strobe_on_high" data-key="strobe_on_high" ${s.strobe_on_high ? "checked" : ""}><span></span></label>
+          <div class="hint">Flashing deters and draws attention</div></div>
+        ${num("sos_hold_s", "SOS keeps HIGH for (s)", "Unless an operator clears it", 'min="10" max="600"')}
+        ${num("lamp_watts", "Lamp power (W)", "At 100 % brightness, for the energy report", 'min="1" max="2000"')}
+        ${num("tariff_per_kwh", "Electricity price per kWh", "", 'min="0" max="1000" step="0.1"')}
+        <div class="field"><label for="s-currency">Currency symbol</label><input class="input" id="s-currency" data-key="currency" maxlength="4" value="${esc(s.currency)}"></div>
+        ${num("co2_kg_per_kwh", "Grid CO₂ (kg per kWh)", "India ≈ 0.71", 'min="0" max="3" step="0.01"')}</div>`)}
       ${section("bell", "red", "Alerts & evidence", "Messaging and how long records are kept", `<div class="form-grid">
         ${select("alert_mode", "When risk is HIGH", [["manual", "Operator confirms before sending"], ["auto", "Send automatically"]])}
         ${num("alert_cooldown_s", "Auto-alert cooldown (s)", "Minimum gap between automatic alerts", 'min="0" max="3600"')}
+        ${num("escalate_after_min", "Escalate after (min)", "Unconfirmed HIGH alerts are sent automatically; 0 = never", 'min="0" max="240"')}
         ${num("incident_cooldown_s", "Incident cooldown (s)", "Same-level incidents closer than this are merged", 'min="5" max="3600"')}
-        ${num("evidence_retention_days", "Keep evidence for (days)", "Older incidents and snapshots are deleted", 'min="1" max="365"')}</div>`)}
+        ${num("evidence_retention_days", "Keep evidence for (days)", "Older incidents, snapshots and clips are deleted", 'min="1" max="365"')}
+        <div class="field"><label for="s-record_clips">Record video clips</label><label class="toggle"><input type="checkbox" id="s-record_clips" data-key="record_clips" ${s.record_clips ? "checked" : ""}><span></span></label>
+          <div class="hint">About 10 s around each incident: 5 s before, 5 s after</div></div></div>`)}
       <div class="card card-pad row" style="position:sticky;bottom:16px;z-index:5">
         <span class="muted" id="s-dirty">All changes saved</span><span style="flex:1"></span>
         <button class="btn" id="s-reset">Reset</button><button class="btn primary" id="s-save" disabled>${ic("save")} Save settings</button>

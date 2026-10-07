@@ -54,6 +54,12 @@ CREATE TABLE IF NOT EXISTS metrics(
 );
 CREATE INDEX IF NOT EXISTS idx_metrics_ts ON metrics(ts);
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS energy(
+    day TEXT PRIMARY KEY,            -- local date YYYY-MM-DD
+    lamp_wh REAL NOT NULL DEFAULT 0, -- what the smart lamp used
+    baseline_wh REAL NOT NULL DEFAULT 0, -- a normal lamp at full power all night
+    night_s REAL NOT NULL DEFAULT 0
+);
 """
 
 INCIDENT_STATUSES = ("new", "reviewed", "false_alarm")
@@ -63,6 +69,7 @@ def _incident(row: sqlite3.Row) -> dict:
     item = dict(row)
     item["reasons"] = json.loads(item.get("reasons") or "[]")
     item["snapshot_url"] = f"/evidence/{item['snapshot']}" if item.get("snapshot") else None
+    item["clip_url"] = f"/evidence/{item['clip']}" if item.get("clip") else None
     return item
 
 
@@ -75,6 +82,10 @@ class Store:
         self._db.row_factory = sqlite3.Row
         with self._lock:
             self._db.executescript(SCHEMA)
+            # upgrade databases created before video clips existed
+            columns = {row[1] for row in self._db.execute("PRAGMA table_info(incidents)")}
+            if "clip" not in columns:
+                self._db.execute("ALTER TABLE incidents ADD COLUMN clip TEXT")
             # an alert interrupted by a shutdown stays "sending" forever; let the operator resend it
             self._db.execute("UPDATE incidents SET alert_status = 'pending' WHERE alert_status = 'sending'")
             self._db.commit()
@@ -145,6 +156,9 @@ class Store:
     def count_incidents(self, start: float) -> int:
         return self._query("SELECT COUNT(*) FROM incidents WHERE ts >= ?", (start,))[0][0]
 
+    def set_clip(self, incident_id: int, name: str) -> None:
+        self._execute("UPDATE incidents SET clip = ? WHERE id = ?", (name, incident_id))
+
     def update_incident(self, incident_id: int, **fields) -> dict | None:
         allowed = {k: v for k, v in fields.items() if k in ("status", "notes", "alert_status") and v is not None}
         if allowed:
@@ -158,16 +172,18 @@ class Store:
             return False
         self._execute("DELETE FROM incidents WHERE id = ?", (incident_id,))
         self._remove_snapshot(item.get("snapshot"))
+        self._remove_snapshot(item.get("clip"))
         return True
 
     def purge_older_than(self, days: int) -> int:
         cutoff = time.time() - days * 86400
-        old = self._query("SELECT id, snapshot FROM incidents WHERE ts < ?", (cutoff,))
+        old = self._query("SELECT id, snapshot, clip FROM incidents WHERE ts < ?", (cutoff,))
         self._execute("DELETE FROM incidents WHERE ts < ?", (cutoff,))
         self._execute("DELETE FROM metrics WHERE ts < ?", (cutoff,))
         self._execute("DELETE FROM alert_log WHERE ts < ?", (cutoff,))
         for row in old:
             self._remove_snapshot(row["snapshot"])
+            self._remove_snapshot(row["clip"])
         return len(old)
 
     @staticmethod
@@ -227,6 +243,22 @@ class Store:
             "INSERT INTO metrics(ts, people, vehicles, level, brightness) VALUES(?, ?, ?, ?, ?)",
             (time.time(), people, vehicles, level, brightness),
         )
+
+    def add_energy(self, day: str, lamp_wh: float, baseline_wh: float, night_s: float) -> None:
+        self._execute(
+            "INSERT INTO energy(day, lamp_wh, baseline_wh, night_s) VALUES(?, ?, ?, ?) "
+            "ON CONFLICT(day) DO UPDATE SET lamp_wh = lamp_wh + excluded.lamp_wh, "
+            "baseline_wh = baseline_wh + excluded.baseline_wh, night_s = night_s + excluded.night_s",
+            (day, lamp_wh, baseline_wh, night_s),
+        )
+
+    def energy_since(self, day: str) -> list[dict]:
+        return [dict(row) for row in self._query("SELECT * FROM energy WHERE day >= ? ORDER BY day", (day,))]
+
+    def pending_high_before(self, cutoff: float) -> list[dict]:
+        """HIGH incidents whose alert is still waiting for an operator."""
+        rows = self._query("SELECT * FROM incidents WHERE level = 'HIGH' AND alert_status = 'pending' AND ts < ?", (cutoff,))
+        return [_incident(row) for row in rows]
 
     def metrics_since(self, start: float) -> list[dict]:
         return [dict(row) for row in self._query("SELECT * FROM metrics WHERE ts >= ? ORDER BY ts", (start,))]

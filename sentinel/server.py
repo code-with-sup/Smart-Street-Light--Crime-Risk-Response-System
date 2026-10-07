@@ -363,6 +363,34 @@ def report_csv(start: str, end: str) -> Response:
                     headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
+@app.get("/api/zones")
+def get_zones() -> list[dict]:
+    return sentinel.settings["zones"]
+
+
+@app.put("/api/zones")
+def put_zones(zones: list[dict]) -> list[dict]:
+    from .zones import ZoneError
+
+    try:
+        return sentinel.set_zones(zones)
+    except (ZoneError, SettingsError) as error:
+        raise _bad_request(error) from None
+
+
+@app.post("/api/sos/simulate")
+def sos_simulate() -> dict:
+    """Same as pressing the SOS button on the pole (for demos and testing without hardware)."""
+    sentinel.hardware.press_sos()
+    return {"message": "SOS pressed"}
+
+
+@app.post("/api/sos/clear")
+def sos_clear() -> dict:
+    sentinel.clear_sos()
+    return {"message": "SOS cleared"}
+
+
 @app.get("/api/models")
 def models() -> list[dict]:
     return [{"id": key, **meta, "downloaded": (ROOT / f"{key}.pt").exists()} for key, meta in MODELS.items()]
