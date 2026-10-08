@@ -147,7 +147,8 @@ class HardwareLink:
         if parts[0] == "STATE" and len(parts) >= 5:
             try:
                 self.pir = parts[1] == "1"
-                self.ldr = int(parts[2])
+                ldr = int(parts[2])
+                self.ldr = None if ldr < 0 else ldr
                 self.brightness = int(parts[3])
                 self.buzzer = parts[4] == "1"
                 self.strobe = len(parts) >= 6 and parts[5] == "1"
