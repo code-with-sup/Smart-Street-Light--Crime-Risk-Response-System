@@ -83,3 +83,7 @@ Tools (hammer, screwdriver, ruler, sticks/rods) get ordinary tool boxes and do n
 automatically trigger weapon alerts. The existing behavior detector can still
 raise risk for observed violent actions. Reference images and aliases do not add
 new capabilities to the retained checkpoint; retraining and evaluation are required.
+
+## Bulk screenshot crops
+
+`Weapon-Detection/screenshot-references/` contains 74 additional local thumbnail/photo crops, indexed in its manifest. Partial thumbnails and multi-object panels are retained for review. These are separate from labeled YOLO splits; review each object box before incorporating them into training. No checkpoint changes accompany these additions.

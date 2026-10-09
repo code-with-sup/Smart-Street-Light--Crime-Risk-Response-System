@@ -94,5 +94,20 @@
       "source": "https://commons.wikimedia.org/wiki/File:Mossberg_500_Bantam.png",
       "license": "CC BY-SA 3.0"
     }
-  ]
+  ],
+  "screenshot_reference_crops": {
+    "path": "Weapon-Detection/screenshot-references",
+    "counts": {
+      "hammer": 12,
+      "knife": 14,
+      "rod": 11,
+      "stick": 14,
+      "straight_razor": 3,
+      "scissors": 18,
+      "blade": 2
+    },
+    "total": 74,
+    "annotation_status": "pending review before training",
+    "reference_only": true
+  }
 }
