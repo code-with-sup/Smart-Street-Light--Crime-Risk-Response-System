@@ -26,3 +26,8 @@ yolo11m.pt
 
 # Local Claude Code / editor tooling
 .claude/
+
+# Local training datasets and generated artifacts (never upload raw media)
+/Weapon Detection/
+/Weapon-Detection/
+/ucf-crime/

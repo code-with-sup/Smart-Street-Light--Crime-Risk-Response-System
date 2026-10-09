@@ -93,3 +93,9 @@ GUIDE.md         full guide: setup, how it works, ESP32, alerts, retraining, tro
 - Weapon model trained on the "Yolo Weapon Detection" dataset (gsds-workspace, Roboflow Universe, CC BY 4.0);
   example images on the Overview come from its test split (`web/showcase/CREDITS.txt`).
 - 3D character "Michelle" and motion rig "Vanguard": Mixamo assets shipped with the three.js examples (MIT).
+
+## Training with local weapon and UCF-Crime data
+
+Dataset validation, training commands, evaluation reports, and model deployment
+limits are described in [training/README.md](training/README.md). Raw datasets and
+training outputs remain local and are excluded from Git.
