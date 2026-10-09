@@ -1,17 +1,18 @@
 {
   "counts": {
-    "knife": 6,
+    "knife": 19,
     "gun": 18,
     "sword": 4,
-    "scissors": 1,
+    "scissors": 18,
     "talwar": 1,
     "bomb": 1,
     "ruler": 1,
     "screwdriver": 1,
-    "hammer": 2,
-    "stick": 1,
-    "rod": 1,
-    "straight_razor": 1
+    "hammer": 14,
+    "stick": 4,
+    "rod": 4,
+    "straight_razor": 4,
+    "blade": 2
   },
   "reference_only": true,
   "missing_requested_classes": [
@@ -20,7 +21,8 @@
   "aliases": {
     "ustara": "straight_razor",
     "wooden rod": "stick",
-    "metal rod": "rod"
+    "metal rod": "rod",
+    "razor blade": "blade"
   },
   "firearm_subtypes": "Source-verified reference metadata only; YOLO boxes use gun, not exact model labels",
   "models": {
@@ -107,7 +109,36 @@
       "blade": 2
     },
     "total": 74,
-    "annotation_status": "pending review before training",
-    "reference_only": true
+    "annotation_status": "All reviewed; usable images labeled; unsuitable crops excluded",
+    "reference_only": true,
+    "review": {
+      "labeled_images": 53,
+      "boxes": 59,
+      "excluded_images": 21,
+      "excluded": [
+        "knife/knife_04.jpg",
+        "rod/rod_01.jpg",
+        "rod/rod_03.jpg",
+        "rod/rod_05.jpg",
+        "rod/rod_07.jpg",
+        "rod/rod_09.jpg",
+        "rod/rod_11.jpg",
+        "stick/stick_01.jpg",
+        "stick/stick_02.jpg",
+        "stick/stick_03.jpg",
+        "stick/stick_04.jpg",
+        "stick/stick_05.jpg",
+        "stick/stick_06.jpg",
+        "stick/stick_07.jpg",
+        "stick/stick_09.jpg",
+        "stick/stick_10.jpg",
+        "stick/stick_11.jpg",
+        "stick/stick_13.jpg",
+        "stick/stick_14.jpg",
+        "stick/stick_15.jpg",
+        "scissors/scissors_18.jpg"
+      ],
+      "all_crops_reviewed": true
+    }
   }
 }
