@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def train_weapon(args):
+    curation = Path(args.weapon_data) / 'curation.json'
+    if curation.exists() and json.loads(curation.read_text()).get('reference_only') and not getattr(args, 'allow_reference_training', False):
+        raise ValueError('This weapon folder is a small reference set, not a validated training dataset. Add diverse labeled examples or explicitly pass --allow-reference-training for experiments.')
     from ultralytics import YOLO
     data, report = prepare_weapon(args.weapon_data, args.output)
     print('Weapon dataset:', json.dumps(report), flush=True)
@@ -119,6 +122,7 @@ def main():
     parser.add_argument('--ucf-data', type=Path, default=ROOT / 'ucf-crime')
     parser.add_argument('--output', type=Path, default=ROOT / 'runs/dataset-training')
     parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--allow-reference-training', action='store_true', help='Explicitly allow experimental training on the curated reference set')
     parser.add_argument('--frames-per-video', type=int, default=32)
     parser.add_argument('--device', default='cpu', help='mps on Apple Silicon; cpu or CUDA device otherwise')
     args = parser.parse_args()

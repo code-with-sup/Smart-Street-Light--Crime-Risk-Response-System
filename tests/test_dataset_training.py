@@ -75,3 +75,11 @@ def test_ucf_training_writes_usable_checkpoint_and_held_out_report(tmp_path, mon
     report = json.loads((out / 'ucf-test.json').read_text())
     assert sum(map(sum, report['test']['confusion_matrix'])) == len(CLASSES)
     assert set(report['test']['per_class_recall']) == set(CLASSES)
+
+
+def test_reference_set_does_not_silently_retrain_live_candidate(tmp_path):
+    import argparse
+    from training.train_datasets import train_weapon
+    (tmp_path / 'curation.json').write_text('{"reference_only": true}')
+    with pytest.raises(ValueError, match='small reference set'):
+        train_weapon(argparse.Namespace(weapon_data=tmp_path))

@@ -39,20 +39,31 @@ POSE_MODEL = "yolo11n-pose"
 
 # How a custom model's class names map onto the app's categories.
 WEAPON_WORDS = re.compile(r"gun|pistol|rifle|revolver|firearm|shotgun|shot-gun|smg|knife|dagger|blade|sword|machete|"
-                          r"axe|weapon|blunt|grenade|bat\b(?!.*animal)", re.I)
+                          r"axe|weapon|blunt|grenade|scissors|\bbomb\b|talwar|katta|razor|ustara|bat\b(?!.*animal)", re.I)
 EVENT_WORDS = re.compile(r"fight|violen|assault|robber|theft|steal|snatch|vandal|attack|punch|kick|shoot|fall", re.I)
 # "No Fight", "Non-Violence", "normal": shown on the video as calm, never raise the risk
 CALM_WORDS = re.compile(r"^(no|non|not)\b|^non-?|normal", re.I)
 
 
+FIREARM_NAMES = {re.sub(r"[^a-z0-9]", "", name.lower()) for name in (
+    "Glock 19", "Colt M1911", "Smith & Wesson Model 10", "Beretta M9", "SIG Sauer P320",
+    "AK-47", "AR-15", "M4A1", "Ruger 10/22", "Winchester Model 70", "Remington 870",
+    "Mossberg 500", "Benelli M4",
+)}
+TOOL_NAMES = {"stick", "woodenstick", "rod", "metalrod", "ruler", "hammer", "screwdriver"}
+
+
 def category_for(name: str) -> str | None:
-    """weapon / event / calm for a custom-model class name, or None to ignore it (e.g. person, bystander)."""
+    """Map trained class names to weapons, events, calm scenes or ordinary tools."""
     if CALM_WORDS.search(name.strip()):
         return "calm"
     if EVENT_WORDS.search(name):
         return "event"
-    if WEAPON_WORDS.search(name):
+    normalized = re.sub(r"[^a-z0-9]", "", name.lower())
+    if WEAPON_WORDS.search(name) or normalized in FIREARM_NAMES:
         return "weapon"
+    if normalized in TOOL_NAMES:
+        return "tool"
     return None
 
 # All GPU work goes through this lock. Metal (MPS) aborts the whole process if two threads encode
@@ -61,7 +72,7 @@ GPU_LOCK = threading.Lock()
 
 # OpenCV colours are BGR.
 COLORS = {"person": (255, 170, 60), "vehicle": (120, 210, 40), "weapon": (40, 40, 235), "event": (0, 140, 255),
-          "calm": (90, 190, 90)}
+          "calm": (90, 190, 90), "tool": (180, 160, 90)}
 SKELETON = ((5, 7), (7, 9), (6, 8), (8, 10), (5, 6), (5, 11), (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16))
 
 
@@ -70,7 +81,7 @@ class Detection:
     box: tuple[int, int, int, int]
     label: str
     confidence: float
-    category: str  # person | vehicle | weapon | event
+    category: str  # person | vehicle | weapon | event | calm | tool
     track_id: int | None = field(default=None)
     keypoints: np.ndarray | None = field(default=None, repr=False)  # (17, 3) x, y, conf for people
     source: str = ""

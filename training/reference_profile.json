@@ -1,0 +1,98 @@
+{
+  "counts": {
+    "knife": 5,
+    "gun": 18,
+    "sword": 4,
+    "scissors": 1,
+    "bomb": 1,
+    "talwar": 1,
+    "stick": 1,
+    "rod": 1,
+    "ruler": 1,
+    "hammer": 2,
+    "screwdriver": 1,
+    "straight_razor": 1
+  },
+  "reference_only": true,
+  "missing_requested_classes": [
+    "katta"
+  ],
+  "aliases": {
+    "ustara": "straight_razor",
+    "wooden rod": "stick",
+    "metal rod": "rod"
+  },
+  "firearm_subtypes": "Source-verified reference metadata only; YOLO boxes use gun, not exact model labels",
+  "models": {
+    "weapon": "models/custom/weapon.pt",
+    "ucf": "runs/dataset-training/ucf-video-baseline.pt",
+    "rejected_weapon_candidate_mAP50": 0.0035188536953242853
+  },
+  "firearm_references": [
+    {
+      "model_or_variant": "Colt M1911",
+      "source": "https://commons.wikimedia.org/wiki/File:Colt_M1911_Pistol_from_1912_Army_manual.png",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Smith & Wesson Model 10",
+      "source": "https://commons.wikimedia.org/wiki/File:Smith_and_Wesson_Model_10-5.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "Beretta M9",
+      "source": "https://commons.wikimedia.org/wiki/File:Berretta_M9_(no_background).png",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "model_or_variant": "SIG Sauer P320",
+      "source": "https://commons.wikimedia.org/wiki/File:SIG_Sauer_P320_compact_pistol.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "AK-47",
+      "source": "https://commons.wikimedia.org/wiki/File:AK-47_assault_rifle.jpg",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "AR-15",
+      "source": "https://commons.wikimedia.org/wiki/File:AR-15_Type_Rifle_in_Wall_Mount.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "M4A1",
+      "source": "https://commons.wikimedia.org/wiki/File:M4A1-flattop.png",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Ruger 10/22",
+      "source": "https://commons.wikimedia.org/wiki/File:Ruger_10-22_Semiautomatic_Rimfire_Carbine-NMAH-AHB2015q116607.jpg",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Winchester Model 70",
+      "source": "https://commons.wikimedia.org/wiki/File:Winchester_Model_70_Classic_Featherweight_.300_WSM.jpg",
+      "license": "CC BY 4.0"
+    },
+    {
+      "model_or_variant": "Remington 870",
+      "source": "https://commons.wikimedia.org/wiki/File:Remington_870_Police_(55284788188).jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "Benelli M4",
+      "source": "https://commons.wikimedia.org/wiki/File:Benelli_m4_2.jpg",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Glock 19",
+      "source": "https://commons.wikimedia.org/wiki/File:Glock_19_Generation_4_9mm_Pistol.jpg",
+      "license": "CC0"
+    },
+    {
+      "model_or_variant": "Mossberg 500",
+      "source": "https://commons.wikimedia.org/wiki/File:Mossberg_500_Bantam.png",
+      "license": "CC BY-SA 3.0"
+    }
+  ]
+}

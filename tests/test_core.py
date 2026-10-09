@@ -109,3 +109,21 @@ def test_valid_settings_are_coerced():
     assert _coerce("crowd_threshold", "8") == 8
     assert _coerce("night_start", "19:15") == "19:15"
     assert _coerce("time_zone", "Europe/London") == "Europe/London"
+
+
+@pytest.mark.parametrize("label", ["Glock 19", "Colt M1911", "Smith & Wesson Model 10", "Beretta M9", "SIG Sauer P320", "AK-47", "AR-15", "M4A1", "Ruger 10/22", "Winchester Model 70", "Remington 870", "Mossberg 500", "Benelli M4", "scissors", "bomb", "talwar", "katta", "straight_razor", "ustara"])
+def test_requested_weapon_labels_map_when_a_trained_model_emits_them(label):
+    from sentinel.detection import category_for
+    assert category_for(label) == "weapon"
+
+
+@pytest.mark.parametrize("label", ["stick", "wooden_stick", "rod", "metal rod", "ruler", "hammer", "screwdriver"])
+def test_tools_can_be_drawn_without_automatically_triggering_weapon_alert(label):
+    import numpy as np
+    from sentinel.detection import category_for, annotate
+    assert category_for(label) == "tool"
+    detections = [Detection((0, 0, 10, 10), label, .95, "tool")]
+    engine = RiskEngine()
+    for t in (1000, 1001, 1002):
+        assert run(engine, detections, t=t).level == "LOW"
+    assert annotate(np.zeros((40, 40, 3), dtype=np.uint8), detections).shape == (40, 40, 3)
