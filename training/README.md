@@ -40,7 +40,7 @@ Weapon training fine-tunes YOLO11n with boxes. `weapon-test.json` records test
 metrics and the actual best-checkpoint path. The original local export had just
 27 training, 4 validation and 9 test images; validation contained no knives or
 shotguns. Its candidate was rejected after poor held-out evaluation and moved
-to recoverable Trash. The local folder is now a curated set of 37 references,
+to recoverable Trash. The local folder is now a curated set of 38 references,
 including 13 firearm examples with source model names, tools and straight razor
 (ustara). Katta is missing. See `reference_profile.json` for coverage. Most new
 classes lack validation/test examples. Default weapon training refuses this

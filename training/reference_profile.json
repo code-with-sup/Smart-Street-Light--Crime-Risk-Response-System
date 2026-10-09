@@ -1,16 +1,16 @@
 {
   "counts": {
-    "knife": 5,
+    "knife": 6,
     "gun": 18,
     "sword": 4,
     "scissors": 1,
-    "bomb": 1,
     "talwar": 1,
+    "bomb": 1,
+    "ruler": 1,
+    "screwdriver": 1,
+    "hammer": 2,
     "stick": 1,
     "rod": 1,
-    "ruler": 1,
-    "hammer": 2,
-    "screwdriver": 1,
     "straight_razor": 1
   },
   "reference_only": true,
