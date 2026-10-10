@@ -99,3 +99,7 @@ GUIDE.md         full guide: setup, how it works, ESP32, alerts, retraining, tro
 Dataset validation, training commands, evaluation reports, and model deployment
 limits are described in [training/README.md](training/README.md). Raw datasets and
 training outputs remain local and are excluded from Git.
+
+## Weapon SOS timing
+
+Automatic weapon SOS requires a weapon above the configured confidence threshold in fresh camera detections continuously for more than 30 seconds. One alert is sent per uninterrupted episode, even in manual mode. Disappearance, stopped/stalled camera, or camera switching resets the timer. Operator-confirmed alerts and physical SOS button presses remain immediate. Old pending incidents are not automatically replayed at restart. Risk lights/evidence can still activate before the SOS timer completes. The model can confuse knives and scissors; timing does not correct model classification.

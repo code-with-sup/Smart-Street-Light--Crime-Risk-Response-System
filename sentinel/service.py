@@ -36,6 +36,7 @@ METRIC_INTERVAL = 15
 HEAT_W, HEAT_H = 48, 27          # activity heatmap grid (16:9)
 HEAT_BACKGROUND = "heatmap_background.jpg"
 HEAT_BACKGROUND_EVERY = 600      # refresh the heatmap's background picture every 10 min
+WEAPON_SOS_SECONDS = 30.0
 STALE_FRAME_SECONDS = 1.5  # camera "running" but no new frame for this long: treat the scene as empty
 PURGE_INTERVAL = 6 * 3600
 RANGES = {
@@ -134,6 +135,12 @@ class Sentinel:
         self.clips = ClipRecorder(EVIDENCE_DIR, self._clip_saved)
         self._energy = {"t": 0.0, "day": "", "lamp_wh": 0.0, "baseline_wh": 0.0, "night_s": 0.0, "flushed": 0.0}
         self._last_escalation_check = 0.0
+        self._weapon_visible_since: float | None = None
+        self._weapon_last_observation: float | None = None
+        self._weapon_episode_sent = False
+        self._weapon_incident_id: int | None = None
+        self._session_incidents: set[int] = set()
+        self._weapon_incidents: set[int] = set()
         self._energy_today: tuple[float, dict] = (0.0, {})
         self._heat = [0] * (HEAT_W * HEAT_H)
         self._heat_day = ""
@@ -259,6 +266,7 @@ class Sentinel:
         detector = self.detector
         if self._reset_scene:  # done on this thread so it never races the tracker mid-update
             self._reset_scene = False
+            self._reset_weapon_presence()
             self.risk.reset()
             self.behavior.reset()
             self.tamper.reset()
@@ -294,6 +302,7 @@ class Sentinel:
                 self.note("system", self.camera.error)
                 self.camera.error = ""
 
+        self._observe_weapon_presence(detections, active=self.camera.running and frame is not None)
         events = self.behavior.update(detections, now, self.camera.size) if settings["behaviour_analysis"] else []
         if self.camera.running and frame is not None:
             zone_events = self.zone_monitor.update(detections, settings["zones"], self.camera.size, now, self.is_night)
@@ -315,8 +324,48 @@ class Sentinel:
             self._record_incident(result, detections, frame, sos=True)
         elif result.level != previous and LEVELS.index(result.level) > LEVELS.index(previous):
             self._record_incident(result, detections, frame)
+        self._send_persistent_weapon_sos(result, detections, frame)
         self._housekeeping(result, detections, now)
         return last_frame
+
+    def _reset_weapon_presence(self) -> None:
+        self._weapon_visible_since = self._weapon_last_observation = None
+        self._weapon_episode_sent = False
+        self._weapon_incident_id = None
+
+    def _observe_weapon_presence(self, detections: list[Detection], *, active: bool) -> None:
+        """Count only fresh detections, never the risk engine's held HIGH state."""
+        now = time.monotonic()
+        visible = active and any(d.category == "weapon" and d.confidence >= self.settings["weapon_confidence"]
+                                 for d in detections)
+        if not visible:
+            self._reset_weapon_presence()
+            return
+        max_gap = max(STALE_FRAME_SECONDS, self.settings["detect_interval_ms"] / 1000 * 2)
+        if self._weapon_last_observation is not None and now - self._weapon_last_observation > max_gap:
+            self._reset_weapon_presence()
+        if self._weapon_visible_since is None:
+            self._weapon_visible_since = now
+        self._weapon_last_observation = now
+
+    def _send_persistent_weapon_sos(self, result: RiskResult, detections: list[Detection], frame) -> None:
+        if (not self.camera.running or frame is None or self._weapon_visible_since is None
+                or self._weapon_episode_sent or result.level != "HIGH"
+                or time.monotonic() - self._weapon_visible_since <= WEAPON_SOS_SECONDS):
+            return
+        if self._weapon_incident_id is None or self.store.incident(self._weapon_incident_id) is None:
+            self._record_incident(result, detections, frame, force=True)
+        incident = self.store.incident(self._weapon_incident_id) if self._weapon_incident_id is not None else None
+        if not incident:
+            return
+        if incident["alert_status"] in ("sent", "sending", "partial"):
+            self._weapon_episode_sent = True  # operator already sent this episode
+            return
+        if incident["alert_status"] != "pending":
+            return
+        self._weapon_episode_sent = True
+        self.note("alert", "Weapon visible for more than 30 seconds: sending SOS", "HIGH", incident["id"])
+        self.dispatch_alert(incident["id"], confirmed=False, weapon_duration=True)
 
     def _drive(self, result: RiskResult, detections: list[Detection]) -> None:
         people = sum(d.category == "person" for d in detections)
@@ -327,9 +376,13 @@ class Sentinel:
     def _housekeeping(self, result: RiskResult, detections: list[Detection], now: float) -> None:
         settings = self.settings
         self._account_energy(now)
-        if settings["escalate_after_min"] and now - self._last_escalation_check >= 10:
+        if (self.camera.running and now - self._last_fresh <= STALE_FRAME_SECONDS
+                and self._evidence_threat_present(detections) and settings["escalate_after_min"]
+                and now - self._last_escalation_check >= 10):
             self._last_escalation_check = now
             for incident in self.store.pending_high_before(now - settings["escalate_after_min"] * 60):
+                if incident["id"] not in self._session_incidents or incident["id"] in self._weapon_incidents:
+                    continue
                 self.note("alert", f"No operator response to incident #{incident['id']} within "
                                    f"{settings['escalate_after_min']} min: sending automatically", "HIGH", incident["id"])
                 self.dispatch_alert(incident["id"], confirmed=False, escalated=True)
@@ -451,9 +504,10 @@ class Sentinel:
             for e in self.events
         )
 
-    def _record_incident(self, result: RiskResult, detections: list[Detection], frame, sos: bool = False) -> None:
+    def _record_incident(self, result: RiskResult, detections: list[Detection], frame, sos: bool = False,
+                         force: bool = False) -> None:
         now = time.time()
-        if not sos and now - self._last_incident.get(result.level, 0) < self.settings["incident_cooldown_s"]:
+        if not sos and not force and now - self._last_incident.get(result.level, 0) < self.settings["incident_cooldown_s"]:
             return
         self._last_incident[result.level] = now
         snapshot = None
@@ -487,13 +541,17 @@ class Sentinel:
             vehicles=sum(d.category == "vehicle" for d in detections), reasons=result.reasons,
             snapshot=snapshot, lat=location.get("lat"), lng=location.get("lng"), alert_status=alert_status,
         )
+        self._session_incidents.add(incident["id"])
+        if result.weapon and not sos:
+            self._weapon_incidents.add(incident["id"])
+            self._weapon_incident_id = incident["id"]
         self.note("incident", f"Incident #{incident['id']}: {result.level} – {label}", result.level, incident["id"])
         if record_evidence and self.settings["record_clips"] and self.camera.running:
             self.clips.capture(incident["id"], f"{datetime.now(self.tz):%Y%m%d_%H%M%S}_{result.level.lower()}_{incident['id']}")
         if alert_status == "pending" and sos:
             # a person asked for help: no AI judgement to confirm, so send at once in every mode
             self.dispatch_alert(incident["id"], confirmed=False)
-        elif alert_status == "pending" and self.settings["alert_mode"] == "auto":
+        elif alert_status == "pending" and not result.weapon and self.settings["alert_mode"] == "auto":
             if now - self._last_auto_alert >= self.settings["alert_cooldown_s"]:
                 self._last_auto_alert = now
                 self.dispatch_alert(incident["id"], confirmed=False)
@@ -503,7 +561,8 @@ class Sentinel:
                 self.note("alert", f"Auto-alert for incident #{incident['id']} held back by the cooldown "
                                    f"({wait} s left); send it from Incident review if needed", "HIGH", incident["id"])
 
-    def dispatch_alert(self, incident_id: int, confirmed: bool = True, escalated: bool = False) -> dict:
+    def dispatch_alert(self, incident_id: int, confirmed: bool = True, escalated: bool = False,
+                       weapon_duration: bool = False) -> dict:
         incident = self.store.incident(incident_id)
         if incident is None:
             raise KeyError(incident_id)
@@ -511,7 +570,7 @@ class Sentinel:
         if not contacts:
             return self.store.update_incident(incident_id, alert_status="no_contacts")
         self.store.update_incident(incident_id, alert_status="sending")
-        subject, body = self._alert_text(incident, confirmed, escalated)
+        subject, body = self._alert_text(incident, confirmed, escalated, weapon_duration)
         image = EVIDENCE_DIR / incident["snapshot"] if incident["snapshot"] else None
 
         def run() -> None:
@@ -528,7 +587,8 @@ class Sentinel:
         self.notifier.submit(run)
         return self.store.incident(incident_id)
 
-    def _alert_text(self, incident: dict, confirmed: bool, escalated: bool = False) -> tuple[str, str]:
+    def _alert_text(self, incident: dict, confirmed: bool, escalated: bool = False,
+                    weapon_duration: bool = False) -> tuple[str, str]:
         when = datetime.fromtimestamp(incident["ts"], self.tz).strftime("%d %b %Y, %I:%M:%S %p %Z")
         location = self.settings["light_location"]
         lines = [f"Time: {when}"]
@@ -542,13 +602,17 @@ class Sentinel:
         lines.append("")
         if incident["label"] == "sos":
             lines.append("Someone pressed the SOS button on this street light and is asking for help.")
+        elif weapon_duration:
+            lines.append("Automatic SOS: a weapon was detected continuously for more than 30 seconds. "
+                         "AI classification has not been verified by a person.")
         elif escalated:
             lines.append(f"No operator responded within {self.settings['escalate_after_min']} min, so this was sent "
                          "automatically. AI detection, not yet verified by a person.")
         else:
             lines.append("Confirmed by the Smart Street operator." if confirmed else
                          "Automatic AI detection – not yet verified by a person.")
-        subject = ("🆘 Smart Street: SOS — help requested" if incident["label"] == "sos"
+        subject = (f"🆘 Smart Street: SOS — persistent {incident['label']} detection" if weapon_duration else
+                   "🆘 Smart Street: SOS — help requested" if incident["label"] == "sos"
                    else f"⚠ Smart Street: {incident['level']} risk – {incident['label']}")
         return subject, "\n".join(lines)
 

@@ -141,6 +141,7 @@ def camera_start(body: CameraStart) -> dict:
 @app.post("/api/camera/stop")
 def camera_stop() -> dict:
     sentinel.camera.stop()
+    sentinel.camera_changed()
     sentinel.note("system", "Camera stopped")
     return {"message": "Camera stopped"}
 

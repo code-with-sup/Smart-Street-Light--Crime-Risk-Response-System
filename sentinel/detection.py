@@ -225,7 +225,7 @@ class Detector:
                 else:
                     category, needed = "vehicle", confidence
                 if score >= needed:
-                    found.append(Detection(tuple(map(int, box.xyxy[0].tolist())), name, score, category, track_id))
+                    found.append(Detection(tuple(map(int, box.xyxy[0].tolist())), name, score, category, track_id, source=self.model_name))
         for model, model_results in zip(self._custom, custom, strict=True):
             for result in model_results:
                 for box in result.boxes:
