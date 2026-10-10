@@ -31,3 +31,6 @@ yolo11m.pt
 /Weapon Detection/
 /Weapon-Detection/
 /ucf-crime/
+
+# Private local crime video recordings
+/crimes/

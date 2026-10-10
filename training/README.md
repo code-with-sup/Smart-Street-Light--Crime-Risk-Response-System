@@ -89,3 +89,37 @@ new capabilities to the retained checkpoint; retraining and evaluation are requi
 `Weapon-Detection/screenshot-references/` contains 74 additional local thumbnail/photo crops, indexed in its manifest. Partial thumbnails and multi-object panels are retained for review. All crops have now been reviewed: 53 usable images with 59 object boxes were added to the training split; 21 unsuitable images remain local and excluded. Training produces a separate candidate; it does not replace active weights.
 
 The reviewed per-object boxes and source crop coordinates are versioned in `training/screenshot_annotations.json`; raw screenshot crops and trained checkpoints remain local.
+
+## Filename-labeled local crime MP4 videos
+
+Run the temporal experimental classifier on your `crimes/` folder:
+
+```sh
+.venv/bin/python -m training.local_crime_videos --data crimes --output runs/local-crime-videos --device mps --epochs 100
+```
+
+Use `--device cpu` if MPS is unavailable. The trainer maps filename stems to labels,
+removes trailing numbers, merges `pickpoketing` into `pickpocketing`, and maps
+`peeing` to `public_urination`. Review filenames before training: they are supplied
+labels, not verified conclusions. Videos, features and model weights stay local.
+
+An ImageNet-pretrained ResNet18 encodes 32 chronological frames per video; a GRU
+learns their sequence and a classifier learns the filename labels. This trains
+the temporal/classification head while the image encoder remains frozen. Entire
+source videos stay in one split, and exact duplicate sources are rejected.
+Two-or-more-video classes reserve one test video; classes with four or more also
+reserve one validation video. Single-video classes are train-only and cannot be
+evaluated independently. Re-edited clips from the same source must also be kept
+in one split manually; exact hash checking cannot identify all such overlaps.
+
+Artifacts: `manifest.json`, `local-crime-video.pt` (selected checkpoint), and
+`report.json` under the output directory. No candidate is installed into live
+risk/SOS. Add normal recordings and diverse independent videos per class before
+live integration, including event time intervals if temporal localization is
+needed. Sampling a whole video can miss brief events.
+
+The first run used 16 videos / 7 labels, with 11 training, 2 validation and 3 test
+videos. Training completed 100 epochs; epoch 5 was selected on validation. It
+classified 2/3 test videos correctly and missed the pickpocketing test example.
+Four classes have no held-out coverage and there are no normal videos. These
+results do not establish reliable crime detection. See `local_crime_results.json`.

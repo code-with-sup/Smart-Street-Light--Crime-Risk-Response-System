@@ -1,0 +1,191 @@
+{
+  "classes": [
+    "fighting",
+    "molestation",
+    "pickpocketing",
+    "public_urination",
+    "robbery",
+    "theft",
+    "vandalism"
+  ],
+  "class_counts": {
+    "fighting": 1,
+    "molestation": 5,
+    "pickpocketing": 5,
+    "public_urination": 1,
+    "robbery": 1,
+    "theft": 2,
+    "vandalism": 1
+  },
+  "split_counts": {
+    "train": 11,
+    "val": 2,
+    "test": 3
+  },
+  "best_epoch": 5,
+  "validation": {
+    "videos": 2,
+    "accuracy": 0.5,
+    "macro_recall_supported_classes": 0.5,
+    "per_class_recall": {
+      "fighting": null,
+      "molestation": 1.0,
+      "pickpocketing": 0.0,
+      "public_urination": null,
+      "robbery": null,
+      "theft": null,
+      "vandalism": null
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "test": {
+    "videos": 3,
+    "accuracy": 0.6666666865348816,
+    "macro_recall_supported_classes": 0.6666666865348816,
+    "per_class_recall": {
+      "fighting": null,
+      "molestation": 1.0,
+      "pickpocketing": 0.0,
+      "public_urination": null,
+      "robbery": null,
+      "theft": 1.0,
+      "vandalism": null
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "normal_videos_present": false,
+  "live_sos_enabled": false,
+  "limitations": [
+    "Very small weakly labeled dataset; filename labels are unverified.",
+    "Classes with one video have no independent validation or test examples.",
+    "Not suitable for automatic alerts; include normal activity and unseen-camera evaluation."
+  ]
+}
