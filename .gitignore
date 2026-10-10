@@ -34,3 +34,6 @@ yolo11m.pt
 
 # Private local crime video recordings
 /crimes/
+
+# Local experimental video classifier weights
+/models/video/*.pt

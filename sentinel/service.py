@@ -16,6 +16,7 @@ import cv2
 from .alerts import Notifier
 from .behavior import BehaviorAnalyzer, Event
 from .camera import Camera
+from .crime_video import CrimeVideoClassifier
 from .clips import ClipRecorder
 from .config import DEFAULT_SETTINGS, EVIDENCE_DIR
 from .detection import MODELS, Detection, Detector, annotate
@@ -106,6 +107,7 @@ class Sentinel:
         self.detector_loading = True
         self.risk = RiskEngine()
         self.behavior = BehaviorAnalyzer()
+        self.crime_video = CrimeVideoClassifier()
         self.tamper = TamperMonitor()
         self.zone_monitor = ZoneMonitor()
         self.speaker = Speaker()
@@ -157,6 +159,7 @@ class Sentinel:
 
     def start(self) -> None:
         self._running = True
+        self.crime_video.start()
         threading.Thread(target=self._load_detector, name="detector-load", daemon=True).start()
         if self.settings["serial_port"]:
             ok, message = self.hardware.connect(self.settings["serial_port"])
@@ -171,6 +174,7 @@ class Sentinel:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=3)  # so no tick can re-light the lamp after the "off" below
         self.clips.stop()
+        self.crime_video.stop()
         self._flush_energy()
         self._flush_heat()
         self.camera.stop()
@@ -239,6 +243,7 @@ class Sentinel:
     def camera_changed(self) -> None:
         """New camera or video: start tracking and risk timers fresh."""
         self._reset_scene = True
+        self.crime_video.reset()
 
     def note(self, kind: str, text: str, level: str | None = None, incident_id: int | None = None) -> None:
         with self._lock:
@@ -267,6 +272,7 @@ class Sentinel:
         if self._reset_scene:  # done on this thread so it never races the tracker mid-update
             self._reset_scene = False
             self._reset_weapon_presence()
+            self.crime_video.reset()
             self.risk.reset()
             self.behavior.reset()
             self.tamper.reset()
@@ -286,6 +292,7 @@ class Sentinel:
                 self._add_heat(detections, frame, now)
                 self._tamper_events = self.tamper.update(frame, now) if settings["tamper_detection"] else []
                 last_frame, self._last_fresh = frame_id, now
+                self.crime_video.observe(frame)
             elif now - self._last_fresh > STALE_FRAME_SECONDS:
                 detections, frame = [], None  # camera stalled: don't keep acting on an old frame
             elif self._sos_new:
@@ -302,6 +309,8 @@ class Sentinel:
                 self.note("system", self.camera.error)
                 self.camera.error = ""
 
+        if frame is None or not self.camera.running:
+            self.crime_video.reset()
         self._observe_weapon_presence(detections, active=self.camera.running and frame is not None)
         events = self.behavior.update(detections, now, self.camera.size) if settings["behaviour_analysis"] else []
         if self.camera.running and frame is not None:
@@ -663,6 +672,7 @@ class Sentinel:
                 "model": detector.model_name if detector else self.settings["model"],
                 "tracking": bool(detector and detector.tracking),
             },
+            "crime_video": self.crime_video.state(active=cam.running),
             "risk": result.as_dict(),
             "counts": {k: sum(d.category == k for d in detections) for k in ("person", "vehicle", "weapon")},
             "detections": [d.as_dict() for d in detections[:30]],

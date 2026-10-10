@@ -123,3 +123,27 @@ videos. Training completed 100 epochs; epoch 5 was selected on validation. It
 classified 2/3 test videos correctly and missed the pickpocketing test example.
 Four classes have no held-out coverage and there are no normal videos. These
 results do not establish reliable crime detection. See `local_crime_results.json`.
+
+
+## Live local-video predictions
+
+The app now loads the local candidate from `models/video/local-crime-video.pt`
+with the cached ImageNet ResNet18 backbone. The checkpoint remains ignored by
+Git. To reinstall after training, copy
+`runs/local-crime-videos/local-crime-video.pt` to that location and restart.
+Install the main requirements, including torchvision. If the candidate/backbone
+is missing or incompatible, only this experimental feature is unavailable; the
+existing YOLO pipeline continues. Runtime does not download the backbone.
+
+Live monitoring shows the highest-scoring label from an eight-second rolling
+buffer, first after eight seconds and then roughly every four seconds. Inference
+runs on a background CPU worker. Scores are uncalibrated classifier scores, not
+probabilities that a crime occurred. The live window differs from the whole-video
+training distribution and requires separate evaluation. No bounding box or event
+time localization is produced. Camera stop/switch and stale-frame gaps clear the
+buffer; results from a previous camera session are discarded.
+
+These local predictions are advisory and do not enter the risk engine, record
+evidence, drive the buzzer, or send SOS. Existing YOLO/pose risk behavior and
+30-second weapon SOS remain active independently. The candidate lacks normal
+examples and cannot establish consent, criminal intent, or legal conclusions.

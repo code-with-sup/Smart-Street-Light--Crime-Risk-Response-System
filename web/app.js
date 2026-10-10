@@ -607,6 +607,7 @@ PAGES.live = {
                 <div><div class="label">Inference</div><div class="strong num" id="lv-ms">—</div></div>
                 <div><div class="label">Runs on</div><div class="strong" id="lv-dev">—</div></div>
               </div>
+              <div class="field"><div class="label">Local video model · experimental</div><div class="strong" id="lv-video-prediction">—</div><div class="hint">Trained on your 16 videos. No normal examples; scores are uncalibrated. Predictions require review and do not trigger SOS.</div></div>
               <div class="field"><label for="lv-conf">People & vehicle confidence</label>
                 <div class="range-row"><input type="range" id="lv-conf" min="0.05" max="0.95" step="0.05" value="${s.confidence}" data-live="confidence"><output>${pct(s.confidence)}</output></div></div>
               <div class="field"><label for="lv-wconf">Weapon confidence</label>
@@ -800,6 +801,9 @@ PAGES.live = {
   update(d) {
     updateStage($("#page"), d);
     const det = d.detector;
+    const video = d.crime_video || {};
+    const prediction = video.prediction;
+    $("#lv-video-prediction").textContent = !d.camera.running ? "Camera off" : prediction ? `Possible ${prediction.label.replaceAll("_", " ")} · model score ${Math.round(prediction.score * 100)}%` : video.status === "ready" ? `Collecting video: ${video.buffer_seconds || 0}/${video.window_seconds || 8}s` : video.status === "error" ? `Unavailable: ${video.error}` : "Loading video model…";
     $("#lv-models").textContent = det.ready ? `${det.models.join(" + ")} · tracking ${det.tracking ? "on" : "off"}` : det.loading ? "Loading model…" : det.error || "Not available";
     $("#lv-fps").textContent = d.camera.running ? d.camera.fps.toFixed(1) : "—";
     const health = d.camera.health || "off";
