@@ -140,5 +140,16 @@
       ],
       "all_crops_reviewed": true
     }
+  },
+  "bulk_training_trial": {
+    "completed_epochs": 22,
+    "heldout_images": 3,
+    "heldout_precision": 0.0,
+    "heldout_recall": 0.0,
+    "heldout_mAP50": 0.0,
+    "source": "captured training log /tmp/bulk-labeled-training.log",
+    "checkpoint_status": "run directory not available after completion",
+    "installed": false,
+    "limitation": "No held-out scissors or blade evaluation; training stopped on a single sword validation image."
   }
 }

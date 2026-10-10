@@ -87,3 +87,5 @@ new capabilities to the retained checkpoint; retraining and evaluation are requi
 ## Bulk screenshot crops
 
 `Weapon-Detection/screenshot-references/` contains 74 additional local thumbnail/photo crops, indexed in its manifest. Partial thumbnails and multi-object panels are retained for review. All crops have now been reviewed: 53 usable images with 59 object boxes were added to the training split; 21 unsuitable images remain local and excluded. Training produces a separate candidate; it does not replace active weights.
+
+The reviewed per-object boxes and source crop coordinates are versioned in `training/screenshot_annotations.json`; raw screenshot crops and trained checkpoints remain local.

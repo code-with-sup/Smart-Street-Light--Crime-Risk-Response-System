@@ -1,0 +1,1179 @@
+{
+  "version": 1,
+  "reference_only": true,
+  "training_only": true,
+  "images": [
+    {
+      "crop": "hammer/hammer_01.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        64,
+        61,
+        381,
+        355
+      ],
+      "sha256": "fe89630207b04d4463d39084ac30f1d925d240c31c3f02cb8b9bbb78dc3df799",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.03,
+          0.96,
+          0.98
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_01.jpg"
+    },
+    {
+      "crop": "hammer/hammer_02.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        423,
+        61,
+        721,
+        355
+      ],
+      "sha256": "27a6de97803b98d3536fce79284d68a2cb0f8a94afaa0e6b7eee58c85fd9e162",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.04,
+          0.02,
+          0.95,
+          0.98
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_02.jpg"
+    },
+    {
+      "crop": "hammer/hammer_03.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        763,
+        61,
+        1079,
+        355
+      ],
+      "sha256": "f3976a03a156107294e0a31c15a17da0477b111171c4920923e82a719fbc57bf",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.1,
+          0.04,
+          0.99,
+          0.96
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_03.jpg"
+    },
+    {
+      "crop": "hammer/hammer_04.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1120,
+        61,
+        1484,
+        355
+      ],
+      "sha256": "885a867b9ca12dc0f80abb071a4035f5b4d3b7be14890bb0ed1885cf14843b45",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.03,
+          0.02,
+          0.97,
+          0.96
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_04.jpg"
+    },
+    {
+      "crop": "hammer/hammer_05.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1523,
+        61,
+        1821,
+        355
+      ],
+      "sha256": "10b8e045f0792bfe441d3daeb536961169b815629c8d7da8c5928357a3fda53b",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.32,
+          0.03,
+          0.88,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_05.jpg"
+    },
+    {
+      "crop": "hammer/hammer_06.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1859,
+        61,
+        2266,
+        355
+      ],
+      "sha256": "0bbdcb44c2bb39a56e90fab902f45e85e3a1742e963542882d62f8e8feacb431",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.08,
+          0.17,
+          0.96,
+          0.86
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_06.jpg"
+    },
+    {
+      "crop": "hammer/hammer_07.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        64,
+        496,
+        444,
+        818
+      ],
+      "sha256": "491675b366663358285474c5025855cf122dfcad31ca58a9f46199700e7668ea",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.07,
+          0.98,
+          0.93
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_07.jpg"
+    },
+    {
+      "crop": "hammer/hammer_08.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        481,
+        496,
+        728,
+        818
+      ],
+      "sha256": "dc1ff9ad4cc330a97bcbbc31948605d32f27f73e2d37b1c3b85bfa227f5317fb",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.22,
+          0.22,
+          0.99,
+          0.98
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_08.jpg"
+    },
+    {
+      "crop": "hammer/hammer_09.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        765,
+        496,
+        1079,
+        818
+      ],
+      "sha256": "0dd721663be8500b1a77b6150678cbdce8d53aa1858495bf374c08c90f295602",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.03,
+          0.04,
+          0.99,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_09.jpg"
+    },
+    {
+      "crop": "hammer/hammer_10.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1117,
+        496,
+        1603,
+        818
+      ],
+      "sha256": "e92497d45d997694513872102f83cf0da75311212feef701faf2178a9926553e",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.08,
+          0.1,
+          0.99,
+          0.89
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_10.jpg"
+    },
+    {
+      "crop": "hammer/hammer_11.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1640,
+        496,
+        1932,
+        818
+      ],
+      "sha256": "66a8d64071a4441d19c54e1eabb554a2b43e305b8b22252812ceec087f9bb684",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.01,
+          0.9,
+          0.98
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_11.jpg"
+    },
+    {
+      "crop": "hammer/hammer_12.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.11\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1969,
+        496,
+        2265,
+        818
+      ],
+      "sha256": "6cb86b95600fb89eacf05818f56588ef9f84fbb780e5d95a6f2d1224c560a37d",
+      "class": "hammer",
+      "boxes_xyxy_normalized": [
+        [
+          0.31,
+          0.12,
+          0.75,
+          0.88
+        ]
+      ],
+      "training_image": "train/images/bulk_hammer_12.jpg"
+    },
+    {
+      "crop": "knife/knife_01.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        142,
+        50,
+        682,
+        345
+      ],
+      "sha256": "8585f8c48ec1613d02070b2092db31f68f70ca1e8f77fdb8c4c84fc88f3598f9",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.0,
+          0.36,
+          1,
+          0.68
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_01.jpg"
+    },
+    {
+      "crop": "knife/knife_02.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        723,
+        50,
+        1011,
+        345
+      ],
+      "sha256": "da2144a48ce7b53cafd1d9fb1e2f33172c2f2f1fe99bac384030ebd596fdb46c",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.02,
+          1,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_02.jpg"
+    },
+    {
+      "crop": "knife/knife_03.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1049,
+        50,
+        1481,
+        345
+      ],
+      "sha256": "09aebdbeec63da03218682a6da85f9f9190fee43e92a79aded89ecc5a54f3359",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.12,
+          0.0,
+          1,
+          0.94
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_03.jpg"
+    },
+    {
+      "crop": "knife/knife_05.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1978,
+        50,
+        2348,
+        345
+      ],
+      "sha256": "69d22cedb8f3fe8162fed41aacd87d700131f727bdeb7acc4faa236a79867998",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.02,
+          0.86,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_05.jpg"
+    },
+    {
+      "crop": "knife/knife_06.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        142,
+        486,
+        468,
+        801
+      ],
+      "sha256": "aa24da405b74ababa009e08483057b7109f57bfdcc063a2577e46b6686acda23",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.03,
+          0.02,
+          0.98,
+          0.97
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_06.jpg"
+    },
+    {
+      "crop": "knife/knife_07.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        507,
+        486,
+        1042,
+        801
+      ],
+      "sha256": "7d43ca9c1d7f705ebef189b90da93ee80a1570999ba16de128dba98f99d8f80a",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.12,
+          0.99,
+          0.93
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_07.jpg"
+    },
+    {
+      "crop": "knife/knife_08.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1083,
+        486,
+        1388,
+        801
+      ],
+      "sha256": "20731414c78005076e089c866c2bb2c384f74a5e6c36e2ae4c6ef335732c4d8e",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.02,
+          0.97,
+          0.97
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_08.jpg"
+    },
+    {
+      "crop": "knife/knife_09.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1426,
+        486,
+        1839,
+        801
+      ],
+      "sha256": "4ec91f524af2cffab3328370da886a81092617554fba6715d72ee437e1c3808e",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.05,
+          0.34,
+          0.99,
+          0.58
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_09.jpg"
+    },
+    {
+      "crop": "knife/knife_10.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1877,
+        486,
+        2348,
+        801
+      ],
+      "sha256": "34d168fe709c9bbf80b329c1fc4c4de1d35c6cc5c07c6f1c1c0c64a80994da6e",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.24,
+          0.06,
+          0.82,
+          0.89
+        ],
+        [
+          0.3,
+          0.22,
+          0.98,
+          0.99
+        ],
+        [
+          0.0,
+          0.4,
+          0.06,
+          0.54
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_10.jpg"
+    },
+    {
+      "crop": "knife/knife_11.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        142,
+        922,
+        653,
+        1217
+      ],
+      "sha256": "4753fe91f621b83ca5dd36e2a19f763f555cfef0d764034bdec2551342e61b11",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.37,
+          0.97,
+          0.56
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_11.jpg"
+    },
+    {
+      "crop": "knife/knife_12.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        695,
+        922,
+        1237,
+        1217
+      ],
+      "sha256": "1322e965dcf0787665ebf1079e85ae91fedaca37155de6bfe50502fbad8037b5",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.25,
+          0.99,
+          0.85
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_12.jpg"
+    },
+    {
+      "crop": "knife/knife_13.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1277,
+        922,
+        1796,
+        1217
+      ],
+      "sha256": "e4e7bdba5602d538d61caa0e0283c1ef5542c7e68aefd65b36732b2361d7f543",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.03,
+          0.14,
+          0.91,
+          0.47
+        ],
+        [
+          0.07,
+          0.53,
+          0.93,
+          0.94
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_13.jpg"
+    },
+    {
+      "crop": "knife/knife_14.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.35\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1837,
+        922,
+        2348,
+        1217
+      ],
+      "sha256": "1ffa1641f5aba40d4bd8a4e3e9ff83acb3d014f225e61dbad8ddf1ecbdd9f0d0",
+      "class": "knife",
+      "boxes_xyxy_normalized": [
+        [
+          0.4,
+          0.35,
+          0.68,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_knife_14.jpg"
+    },
+    {
+      "crop": "rod/rod_02.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.57\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        470,
+        475,
+        847,
+        769
+      ],
+      "sha256": "ef8f2425c44bb66d17756d848871bf595c87b59cf351e9afeb5c30bb8eb983af",
+      "class": "rod",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.02,
+          0.98,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_rod_02.jpg"
+    },
+    {
+      "crop": "rod/rod_04.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.57\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1328,
+        475,
+        1635,
+        769
+      ],
+      "sha256": "f891ca3c1191e784828be11ca4824db31a91801ddee0015c543cfa4c0ccd4f4e",
+      "class": "rod",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.02,
+          0.76,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_rod_04.jpg"
+    },
+    {
+      "crop": "rod/rod_06.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.57\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        32,
+        910,
+        368,
+        1211
+      ],
+      "sha256": "3987b1090d5e3c0b445b7719cc9ebfb7047bc4d0fe70892e29076a5154fb1c5c",
+      "class": "stick",
+      "boxes_xyxy_normalized": [
+        [
+          0.07,
+          0.04,
+          0.64,
+          0.73
+        ]
+      ],
+      "training_image": "train/images/bulk_rod_06.jpg"
+    },
+    {
+      "crop": "rod/rod_08.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.57\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        823,
+        910,
+        1186,
+        1211
+      ],
+      "sha256": "d3d4b0b586ccaada1addc5038c24be074a578a2ef084ac6838bee8826ac34c01",
+      "class": "rod",
+      "boxes_xyxy_normalized": [
+        [
+          0.0,
+          0.01,
+          0.98,
+          0.95
+        ]
+      ],
+      "training_image": "train/images/bulk_rod_08.jpg"
+    },
+    {
+      "crop": "rod/rod_10.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.17.57\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1532,
+        910,
+        1834,
+        1211
+      ],
+      "sha256": "53f663a087db61c602b26c91cc7721dd8ff0a7c673dc3b88fbcbaf480421f707",
+      "class": "stick",
+      "boxes_xyxy_normalized": [
+        [
+          0.29,
+          0.23,
+          0.64,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_rod_10.jpg"
+    },
+    {
+      "crop": "stick/stick_08.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.18.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        529,
+        932,
+        982,
+        1547
+      ],
+      "sha256": "46256358738fe3a33176cf89704fc6b8de47666dda92c035797f22ab2534b637",
+      "class": "stick",
+      "boxes_xyxy_normalized": [
+        [
+          0.435,
+          0.29,
+          0.48,
+          0.88
+        ]
+      ],
+      "training_image": "train/images/bulk_stick_08.jpg"
+    },
+    {
+      "crop": "straight_razor/straight_razor_01.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.22.39\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        0,
+        503,
+        455,
+        1060
+      ],
+      "sha256": "ef155a7c585fb6221af685ed3b4494b3106134323296a426a45f6bb60b48d87e",
+      "class": "straight_razor",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.31,
+          0.59,
+          0.9
+        ]
+      ],
+      "training_image": "train/images/bulk_straight_razor_01.jpg"
+    },
+    {
+      "crop": "straight_razor/straight_razor_02.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.22.39\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        475,
+        503,
+        930,
+        905
+      ],
+      "sha256": "dae1606442a4e03a0af5d4ff0eef2bad52a332d230b98a22b3f7b14ae9381955",
+      "class": "straight_razor",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.02,
+          0.99,
+          0.97
+        ]
+      ],
+      "training_image": "train/images/bulk_straight_razor_02.jpg"
+    },
+    {
+      "crop": "straight_razor/straight_razor_03.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.22.39\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        952,
+        503,
+        1428,
+        969
+      ],
+      "sha256": "14b15ffe4432229f31fe057ddea277f00f0a3e0d8cdaade993f41b104577ee7c",
+      "class": "straight_razor",
+      "boxes_xyxy_normalized": [
+        [
+          0.0,
+          0.0,
+          1,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_straight_razor_03.jpg"
+    },
+    {
+      "crop": "scissors/scissors_01.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        50,
+        334,
+        507,
+        868
+      ],
+      "sha256": "589ea3c3928df8178f59e01f72e4d84af253a7aed7fa3774be20971ca49fb041",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.21,
+          0.07,
+          0.8,
+          0.93
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_01.jpg"
+    },
+    {
+      "crop": "scissors/scissors_02.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        527,
+        334,
+        983,
+        578
+      ],
+      "sha256": "24af7aa81a856295c7f710947a1daab18ebc75bdfa8e21aae3c7d6b46e5baf0b",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.05,
+          0.03,
+          0.93,
+          0.65
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_02.jpg"
+    },
+    {
+      "crop": "scissors/scissors_03.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        527,
+        686,
+        983,
+        1144
+      ],
+      "sha256": "19bb9bc1411421c710a877275936c98267e0ec2700cdb538b3af3db161335e8e",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.09,
+          0.18,
+          0.91,
+          0.88
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_03.jpg"
+    },
+    {
+      "crop": "scissors/scissors_04.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1003,
+        334,
+        1460,
+        830
+      ],
+      "sha256": "801d0a6256d037aef084f67d49bafa828fc2f2c85ebd9d9b0666122909ebdd34",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.18,
+          0.16,
+          0.93,
+          0.86
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_04.jpg"
+    },
+    {
+      "crop": "scissors/scissors_05.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1003,
+        934,
+        1460,
+        1249
+      ],
+      "sha256": "66abca247326732a0195141c88e19a826f54328251fa8ff5cf070120e80c640f",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.0,
+          0.16,
+          1,
+          0.87
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_05.jpg"
+    },
+    {
+      "crop": "scissors/scissors_06.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1480,
+        334,
+        1937,
+        688
+      ],
+      "sha256": "3322d0fdf7bebc2be67b246ebf534c104ee407294af525eb64d719142979fd83",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.12,
+          0.13,
+          0.92,
+          0.89
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_06.jpg"
+    },
+    {
+      "crop": "scissors/scissors_07.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1480,
+        795,
+        1937,
+        1026
+      ],
+      "sha256": "71fe43f53c83ef51aa32ded2cb4d5239b69aa826f1121d85931d1baf874e12ed",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.02,
+          0.02,
+          0.98,
+          0.99
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_07.jpg"
+    },
+    {
+      "crop": "scissors/scissors_08.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1957,
+        334,
+        2413,
+        831
+      ],
+      "sha256": "0a386d5d644106dc20938e72eec807d44b2f81af758182e894774aab2269526b",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.01,
+          0.4,
+          0.91
+        ],
+        [
+          0.29,
+          0.01,
+          0.67,
+          0.99
+        ],
+        [
+          0.57,
+          0.01,
+          0.97,
+          0.94
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_08.jpg"
+    },
+    {
+      "crop": "scissors/scissors_09.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        2433,
+        334,
+        2890,
+        887
+      ],
+      "sha256": "edaa660a3e022a172369c5dbda4553eaa2eefd826e812d8578b9e43f6e8bfe44",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.22,
+          0.07,
+          0.85,
+          0.98
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_09.jpg"
+    },
+    {
+      "crop": "scissors/scissors_10.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        50,
+        975,
+        507,
+        1457
+      ],
+      "sha256": "11fda20f8af71d47dd6d567cfa54ea9c8acc1efd6b53992921bad8a9c1ebed4d",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.0,
+          0.0,
+          1,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_10.jpg"
+    },
+    {
+      "crop": "scissors/scissors_11.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        527,
+        1255,
+        983,
+        1678
+      ],
+      "sha256": "d519907b637ecca041ceba59c7a988a0311ce0aec0ffeb9e9e82f3a588cd0995",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.01,
+          0.93,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_11.jpg"
+    },
+    {
+      "crop": "scissors/scissors_12.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1003,
+        1355,
+        1460,
+        1678
+      ],
+      "sha256": "f321301c0b85fc1a45de22213439c06fbb473770328f79698f4417df0b13f562",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.12,
+          0.07,
+          0.91,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_12.jpg"
+    },
+    {
+      "crop": "scissors/scissors_13.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1480,
+        1134,
+        1937,
+        1468
+      ],
+      "sha256": "369a348f6a686d44ad8019f83e580ae82d8719c2e82deb1152fc6f07162e6ebd",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.01,
+          0.14,
+          0.99,
+          0.91
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_13.jpg"
+    },
+    {
+      "crop": "scissors/scissors_14.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1957,
+        953,
+        2413,
+        1267
+      ],
+      "sha256": "cd67c42260cc4b52fd13032d96ae67e29d14b16bf4f3c19eaa66767437cf2a6e",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.03,
+          0.08,
+          0.99,
+          0.96
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_14.jpg"
+    },
+    {
+      "crop": "scissors/scissors_15.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        2433,
+        998,
+        2890,
+        1332
+      ],
+      "sha256": "9a0497853ce07d4be5724458f79434fd7dd0725b8b0270bb90c610850e07cd19",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.11,
+          0.0,
+          0.37,
+          0.77
+        ],
+        [
+          0.57,
+          0.0,
+          0.83,
+          0.74
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_15.jpg"
+    },
+    {
+      "crop": "scissors/scissors_16.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        1957,
+        1375,
+        2413,
+        1678
+      ],
+      "sha256": "5383fdb163464f2fb78f31d3bb85f02846afc2a7cb28841dfe79c105157f70c8",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.04,
+          0.04,
+          0.99,
+          1
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_16.jpg"
+    },
+    {
+      "crop": "scissors/scissors_17.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.16\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        2433,
+        1394,
+        2890,
+        1678
+      ],
+      "sha256": "85763048ca360f054fc6fc891af248d3ce39a28c7682b40db8ee71592ddb8f0d",
+      "class": "scissors",
+      "boxes_xyxy_normalized": [
+        [
+          0.11,
+          0.18,
+          0.95,
+          0.94
+        ]
+      ],
+      "training_image": "train/images/bulk_scissors_17.jpg"
+    },
+    {
+      "crop": "blade/blade_01.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.49\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        0,
+        16,
+        911,
+        688
+      ],
+      "sha256": "cbc3906f12a8c3547876865fc4dc6e2696aa36e546135883f02e9bdbe1410599",
+      "class": "blade",
+      "boxes_xyxy_normalized": [
+        [
+          0.27442371020856204,
+          0.27827380952380953,
+          0.7332601536772777,
+          0.6964285714285714
+        ]
+      ],
+      "training_image": "train/images/bulk_blade_01.jpg"
+    },
+    {
+      "crop": "blade/blade_02.jpg",
+      "source_filename": "Screenshot 2026-10-10 at 1.36.59\u202fAM.png",
+      "source_crop_xyxy_pixels": [
+        19,
+        24,
+        1033,
+        590
+      ],
+      "sha256": "aaed2bce7d6df145353d913f4b01d3cd1bc4e27c8d1b8ad8d61bb86a8eccd6f3",
+      "class": "blade",
+      "boxes_xyxy_normalized": [
+        [
+          0.5118343195266272,
+          0.3197879858657244,
+          0.8698224852071006,
+          0.7031802120141343
+        ]
+      ],
+      "training_image": "train/images/bulk_blade_02.jpg"
+    }
+  ],
+  "excluded": [
+    "knife/knife_04.jpg",
+    "rod/rod_01.jpg",
+    "rod/rod_03.jpg",
+    "rod/rod_05.jpg",
+    "rod/rod_07.jpg",
+    "rod/rod_09.jpg",
+    "rod/rod_11.jpg",
+    "stick/stick_01.jpg",
+    "stick/stick_02.jpg",
+    "stick/stick_03.jpg",
+    "stick/stick_04.jpg",
+    "stick/stick_05.jpg",
+    "stick/stick_06.jpg",
+    "stick/stick_07.jpg",
+    "stick/stick_09.jpg",
+    "stick/stick_10.jpg",
+    "stick/stick_11.jpg",
+    "stick/stick_13.jpg",
+    "stick/stick_14.jpg",
+    "stick/stick_15.jpg",
+    "scissors/scissors_18.jpg"
+  ]
+}
