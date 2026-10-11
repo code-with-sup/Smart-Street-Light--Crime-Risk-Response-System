@@ -28,6 +28,7 @@ from .privacy import blur_faces
 from .tamper import TamperMonitor
 from .voice import MODES as VOICE_MODES
 from .voice import Speaker
+from .weapon_shape import check_detections
 from .zones import ZoneMonitor, draw_zones, validate_zone
 
 log = logging.getLogger("sentinel.service")
@@ -288,6 +289,7 @@ class Sentinel:
                 began = time.perf_counter()
                 detections = detector.detect(frame, settings["confidence"], settings["weapon_confidence"],
                                              settings["crime_confidence"])
+                check_detections(frame, detections, enabled=settings["weapon_shape_check"])
                 self.inference_ms = (time.perf_counter() - began) * 1000
                 self._add_heat(detections, frame, now)
                 self._tamper_events = self.tamper.update(frame, now) if settings["tamper_detection"] else []

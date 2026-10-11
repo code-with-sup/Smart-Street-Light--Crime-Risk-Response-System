@@ -103,3 +103,28 @@ training outputs remain local and are excluded from Git.
 ## Weapon SOS timing
 
 Automatic weapon SOS requires a weapon above the configured confidence threshold in fresh camera detections continuously for more than 30 seconds. One alert is sent per uninterrupted episode, even in manual mode. Disappearance, stopped/stalled camera, or camera switching resets the timer. Operator-confirmed alerts and physical SOS button presses remain immediate. Old pending incidents are not automatically replayed at restart. Risk lights/evidence can still activate before the SOS timer completes. The model can confuse knives and scissors; timing does not correct model classification.
+
+### Experimental weapon contour check
+
+On branch `feat/weapon-contour-check`, Settings → **Weapon contour check · experimental**
+enables a classical OpenCV check (on by default). Start the camera in Live monitoring.
+Detected knife/scissors and broad weapon crops show **CV shape: scissors-like**,
+**blade-like**, or **uncertain**, both under their video boxes and in **In view now**.
+Hover the shape hint in the detection list for its explanation. Use the Settings
+switch and Save settings to compare with the check disabled; no model reload is needed.
+
+The algorithm estimates a simple background from the crop border, segments a
+foreground silhouette by Lab color distance, and examines contour hierarchy,
+enclosed handle-like holes, PCA orientation, elongation and taper. Two handle-like
+loops support scissors-like; an elongated taper without loops supports blade-like.
+A blade-like silhouette is not proof of a knife: closed scissors can look similar.
+A hand covering the handle, complex backgrounds, blur, small crops, and clipped
+outlines often yield uncertain. This does not identify firearm models or crimes.
+It analyzes at most four eligible detections per frame and caps crop resolution
+at 256 pixels along the longest dimension to bound CPU work.
+
+The hint is independent advisory metadata, not a calibrated confidence or a new
+trained class. YOLO's label, confidence, category and existing weapon SOS rule
+remain intact. Synthetic tests verify intended geometry and fallbacks; live
+accuracy must be evaluated separately. Original images and model weights are
+unchanged.

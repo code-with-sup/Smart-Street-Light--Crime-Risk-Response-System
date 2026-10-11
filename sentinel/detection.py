@@ -85,10 +85,11 @@ class Detection:
     track_id: int | None = field(default=None)
     keypoints: np.ndarray | None = field(default=None, repr=False)  # (17, 3) x, y, conf for people
     source: str = ""
+    shape_check: dict | None = field(default=None, repr=False)
 
     def as_dict(self) -> dict:
         return {"box": self.box, "label": self.label, "confidence": round(self.confidence, 3),
-                "category": self.category, "track_id": self.track_id, "source": self.source}
+                "category": self.category, "track_id": self.track_id, "source": self.source, "shape_check": self.shape_check}
 
 
 def _iou(a, b) -> float:
@@ -280,6 +281,10 @@ def annotate(frame, detections: list[Detection], events=()):
         top = max(h + 8, y1)
         cv2.rectangle(out, (x1, top - h - 8), (x1 + w + 8, top), color, -1)
         cv2.putText(out, text, (x1 + 4, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        if det.shape_check:
+            hint = f"CV shape: {det.shape_check['hint']}"
+            cv2.putText(out, hint, (max(0, x1), min(out.shape[0] - 5, y2 + 17)), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.45, (255, 230, 100), 1, cv2.LINE_AA)
     for event in events:  # crime behaviour: box around everyone involved, labelled at the bottom
         if not event.box:
             continue

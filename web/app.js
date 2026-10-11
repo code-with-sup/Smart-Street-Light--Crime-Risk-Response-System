@@ -821,7 +821,7 @@ PAGES.live = {
       ? d.detections.slice().sort((a, b) => (b.category === "weapon") - (a.category === "weapon") || b.confidence - a.confidence)
         .map((x) => `<li><span class="det-swatch" style="background:${colors[x.category]}"></span><span style="text-transform:capitalize">${esc(x.label)}${x.track_id != null ? ` <span class="faint">#${x.track_id}</span>` : ""}</span>
           <span class="faint small" title="Model that found it">${esc(x.source || "yolo · tracked")}</span>
-          <span class="conf">${pct(x.confidence)}</span></li>`).join("")
+          <span class="conf">${pct(x.confidence)}</span>${x.shape_check ? `<span class="hint" title="${esc(x.shape_check.reason)}">CV shape: ${esc(x.shape_check.hint)}</span>` : ""}</li>`).join("")
       : `<li class="muted">${d.camera.running ? "Nothing detected" : "Start the camera to see detections"}</li>`);
   },
 };
@@ -1437,6 +1437,7 @@ PAGES.settings = {
         ${num("detect_interval_ms", "Detection interval (ms)", "Lower = faster reaction, more CPU", 'min="50" max="2000" step="50"')}
         ${num("camera_index", "Camera number", "0 = built-in, 1+ = USB webcams", 'min="0" max="9"')}
         <div class="field"><label for="s-mirror">Mirror image</label><label class="toggle"><input type="checkbox" id="s-mirror" data-key="mirror" ${s.mirror ? "checked" : ""}><span></span></label></div>
+        <div class="field"><label for="s-weapon_shape_check">Weapon contour check · experimental</label><label class="toggle"><input type="checkbox" id="s-weapon_shape_check" data-key="weapon_shape_check" ${s.weapon_shape_check ? "checked" : ""}><span></span></label><div class="hint">Adds blade-like / scissors-like / uncertain shape hints. Keeps YOLO labels and SOS unchanged.</div></div>
         <div class="field"><label for="s-tamper_detection">Camera tamper detection</label><label class="toggle"><input type="checkbox" id="s-tamper_detection" data-key="tamper_detection" ${s.tamper_detection ? "checked" : ""}><span></span></label>
           <div class="hint">Alarm if the camera is covered, blurred or turned away</div></div>
         <div class="field"><label for="s-behaviour_analysis">Crime behaviour analysis</label><label class="toggle"><input type="checkbox" id="s-behaviour_analysis" data-key="behaviour_analysis" ${s.behaviour_analysis ? "checked" : ""}><span></span></label>
