@@ -358,13 +358,16 @@ function activityHTML(items) {
 function incidentCard(item) {
   const thumb = item.snapshot_url ? `style="background-image:url('${item.snapshot_url}')"` : "";
   const [alertText, alertTone] = ALERT_STATUS[item.alert_status] || ["", ""];
-  return `<div class="card inc-card" data-incident="${item.id}" tabindex="0" role="button" aria-label="Open incident ${item.id}: ${esc(item.label)}, ${item.level}">
+  return `<article class="card inc-card" data-incident="${item.id}">
+    <div class="inc-open" data-incident-open tabindex="0" role="button" aria-label="Open incident ${item.id}: ${esc(item.label)}, ${item.level}">
     <div class="inc-thumb" ${thumb}>${item.snapshot_url ? "" : `<div class="noimg">${ic("image")}</div>`}${levelBadge(item.level)}${item.clip_url ? `<span class="badge clip-badge">${ic("play")} Clip</span>` : ""}</div>
     <div class="inc-body">
       <div class="inc-title">${esc(item.label)}</div>
       <div class="inc-meta"><span>${fmtDateTime(item.ts)}</span>·<span>${STATUS_LABEL[item.status]}</span>
         ${item.level === "HIGH" ? `<span class="badge ${alertTone}">${alertText}</span>` : ""}</div>
-    </div></div>`;
+    </div></div>
+    <div class="inc-actions"><button class="btn sm danger" data-delete-incident="${item.id}" aria-label="Delete incident ${item.id} and its evidence">${ic("trash")} Delete</button></div>
+    </article>`;
 }
 
 function emptyState(icon, title, text, extra = "") {
@@ -842,7 +845,31 @@ PAGES.incidents = {
     $("#inc-level").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; f.level = b.dataset.v; $$("#inc-level button").forEach((x) => x.classList.toggle("on", x === b)); this.load(); });
     $("#inc-status").addEventListener("change", (e) => { f.status = e.target.value; this.load(); });
     $("#inc-refresh").addEventListener("click", () => this.load());
-    $("#inc-list").addEventListener("click", (e) => { const c = e.target.closest("[data-incident]"); if (c) openIncident(+c.dataset.incident, () => this.load()); });
+    $("#inc-list").addEventListener("click", (e) => {
+      const del = e.target.closest("[data-delete-incident]");
+      if (del) {
+        e.stopPropagation();
+        const id = +del.dataset.deleteIncident;
+        openModal(`<div class="stack" style="padding:22px;gap:16px">
+          <h2>Delete incident #${id}?</h2>
+          <p>Its snapshot and video will also be permanently deleted. This cannot be undone.</p>
+          <div class="row"><button class="btn" data-delete-cancel>Cancel</button><span class="spacer" style="flex:1"></span>
+            <button class="btn danger solid" data-delete-confirm>${ic("trash")} Delete incident</button></div>
+        </div>`);
+        $("[data-delete-cancel]", $("#modal")).addEventListener("click", closeModal);
+        $("[data-delete-confirm]", $("#modal")).addEventListener("click", async (event) => {
+          try {
+            await busy(event.currentTarget, () => api(`/api/incidents/${id}`, { method: "DELETE" }));
+            closeModal();
+            toast("Incident deleted");
+            await this.load();
+          } catch { /* api() displays the error; keep the dialog available for retry. */ }
+        });
+        return;
+      }
+      const c = e.target.closest("[data-incident]");
+      if (c) openIncident(+c.dataset.incident, () => this.load());
+    });
     this.load();
   },
   async load() {
@@ -1164,15 +1191,15 @@ PAGES.sensors = {
       <div class="card">
         <div class="card-head"><span class="chip-icon">${ic("cpu")}</span><div><h2>Wiring & firmware</h2><div class="sub">firmware/esp32_street_light/esp32_street_light.ino</div></div></div>
         <div style="overflow-x:auto"><table class="table"><thead><tr><th>Part</th><th>ESP32 pin</th><th>Notes</th></tr></thead><tbody>
-          <tr><td class="strong">Street light LED</td><td class="mono">GPIO 25</td><td class="muted">Through a transistor/MOSFET for anything brighter than a single LED. PWM dimming.</td></tr>
-          <tr><td class="strong">Piezo buzzer</td><td class="mono">GPIO 26</td><td class="muted">Active buzzer, or passive driven with a tone.</td></tr>
-          <tr><td class="strong">PIR motion sensor</td><td class="mono">GPIO 27</td><td class="muted">HC-SR501 OUT pin. Power from 5 V, output is 3.3 V safe.</td></tr>
-          <tr><td class="strong">SOS push button</td><td class="mono">GPIO 14</td><td class="muted">Button to GND (internal pull-up). Works even if the PC is off: the lamp strobes and the buzzer sounds for 60 s.</td></tr>
-          <tr><td class="strong">LDR</td><td class="mono">GPIO 34</td><td class="muted">Voltage divider with a 10 kΩ resistor to 3.3 V. Brighter = higher value.</td></tr>
+          <tr><td class="strong">Street light LED</td><td class="mono">GPIO 2</td><td class="muted">220/330 Ω series resistor for a single LED. Use a transistor/MOSFET for a larger lamp.</td></tr>
+          <tr><td class="strong">Buzzer</td><td class="mono">GPIO 4</td><td class="muted">Active buzzer by default; use a driver for higher current. Passive: set ACTIVE_BUZZER = false in the sketch.</td></tr>
+          <tr><td class="strong">PIR motion sensor</td><td class="mono">GPIO 5</td><td class="muted">HC-SR501 OUT pin. Power from 5 V, output is 3.3 V safe.</td></tr>
+          <tr><td class="strong">SOS push button</td><td class="mono">GPIO 14</td><td class="muted">Optional: disabled by default (HAS_SOS_BUTTON = false). When enabled, wire button to GND using the internal pull-up.</td></tr>
+          <tr><td class="strong">LDR</td><td class="mono">GPIO 34</td><td class="muted">Optional: disabled by default (HAS_LDR = false). Voltage divider with a 10 kΩ resistor to 3.3 V.</td></tr>
         </tbody></table></div>
         <div class="card-body small muted" style="border-top:1px solid var(--border)">
           Flash the sketch with Arduino IDE (board: <code>ESP32 Dev Module</code>), plug the ESP32 in by USB, then pick its port above.
-          If the dashboard stops talking to it for 5 s, the ESP32 runs on its own: PIR + LDR switch the light by themselves.
+          Serial: 115200 baud. PIR warm-up: 60 s. After 5 s without PC commands, PIR controls dim/full lighting and the buzzer turns off. Without the optional LDR, fallback always treats the scene as dark.
         </div>
       </div>`;
     $("#t-bright").addEventListener("input", (e) => { $("#t-bright-out").textContent = `${e.target.value}%`; });
@@ -1555,7 +1582,7 @@ $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") clos
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
   const card = e.target.closest && e.target.closest("[data-incident]");
-  if (card && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); card.click(); }
+  if (card && e.target.matches("[data-incident], [data-incident-open]") && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); card.click(); }
   if (e.key === "Tab" && !$("#modal").hidden) { // keep focus inside the open dialog
     const items = $$("#modal button, #modal textarea, #modal a[href], #modal input").filter((el) => !el.disabled);
     if (!items.length) return;

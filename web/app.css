@@ -290,6 +290,9 @@ table.table { width: 100%; border-collapse: collapse; }
 .toolbar .spacer { flex: 1; }
 .inc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
 .inc-card { overflow: hidden; cursor: pointer; transition: transform .2s, border-color .2s; display: flex; flex-direction: column; animation: rise .4s both; }
+.inc-open { flex: 1; }
+.inc-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.inc-actions { display: flex; justify-content: flex-end; padding: 0 14px 13px; cursor: default; }
 .inc-card:hover { transform: translateY(-3px); border-color: var(--accent-line); }
 .inc-thumb { aspect-ratio: 16 / 10; background: var(--feed-bg) center / cover no-repeat; position: relative; }
 .inc-thumb .badge { position: absolute; top: 10px; left: 10px; background: rgba(8, 8, 8, .78); backdrop-filter: blur(6px); }
