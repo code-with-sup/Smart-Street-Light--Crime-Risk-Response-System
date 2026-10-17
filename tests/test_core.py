@@ -17,8 +17,8 @@ def knife(conf=0.8):
     return Detection((0, 0, 5, 5), "knife", conf, "weapon")
 
 
-def run(engine, detections, *, night=False, motion=False, t=1000.0):
-    return engine.evaluate(detections, is_night=night, motion=motion, settings=SETTINGS, now=t)
+def run(engine, detections, *, night=False, motion=False, t=1000.0, camera_motion=False):
+    return engine.evaluate(detections, is_night=night, motion=motion, settings=SETTINGS, now=t, camera_motion=camera_motion)
 
 
 def test_empty_street_by_day_is_low_and_light_off():
@@ -26,22 +26,33 @@ def test_empty_street_by_day_is_low_and_light_off():
     assert (result.level, result.brightness, result.buzzer) == ("LOW", 0, False)
 
 
-def test_empty_street_at_night_is_dimmed():
+def test_empty_street_at_night_without_motion_is_light_off():
     result = run(RiskEngine(), [], night=True)
-    assert (result.level, result.brightness) == ("LOW", SETTINGS["low_brightness"])
+    assert (result.level, result.brightness) == ("LOW", 0)
 
 
-def test_person_at_night_is_medium_full_light():
+def test_camera_motion_is_dim_light():
+    result = run(RiskEngine(), [], camera_motion=True)
+    assert (result.level, result.brightness, result.buzzer) == ("LOW", SETTINGS["low_brightness"], False)
+
+
+def test_person_without_motion_is_light_off():
     result = run(RiskEngine(), [person()], night=True)
-    assert (result.level, result.brightness, result.buzzer) == ("MEDIUM", 100, False)
+    assert (result.level, result.brightness, result.buzzer) == ("MEDIUM", 0, False)
+
+
+def test_moving_person_is_dim_light():
+    result = run(RiskEngine(), [person()], night=True, camera_motion=True)
+    assert (result.level, result.brightness, result.buzzer) == ("MEDIUM", SETTINGS["low_brightness"], False)
 
 
 def test_pir_motion_at_night_without_camera_is_medium():
     assert run(RiskEngine(), [], night=True, motion=True).level == "MEDIUM"
 
 
-def test_person_by_day_stays_low():
-    assert run(RiskEngine(), [person()]).level == "LOW"
+def test_person_by_day_without_motion_is_light_off():
+    result = run(RiskEngine(), [person()])
+    assert (result.level, result.brightness, result.buzzer) == ("LOW", 0, False)
 
 
 def test_crowd_is_medium_even_by_day():

@@ -1,0 +1,26 @@
+Use case: product-mockup with educational component labels.
+Create ONE high-resolution landscape image, a polished realistic tabletop prototype presentation of the user's "SMART STREET" street-light monitoring project. This is a clean, understandable picture of the assembled actual electronics, not an abstract block diagram or a miniature city. Camera view three-quarter overhead, enough top-down visibility to clearly see the breadboard, pins, wires and parts. Neutral off-white workbench, soft daylight, crisp realistic components, organized wiring, generous spacing, no hands or clutter.
+
+Required hardware, all clearly visible:
+- One classic black ESP32-WROOM-32 30-pin development board, rectangular silver RF shield, micro-USB connector, real-looking pin headers, standing OUTSIDE the breadboard so no terminals are covered.
+- One SMALL 400-point solderless breadboard with 30 numbered rows, A-E / F-J terminal halves separated by center gap and red/blue power rails. Clearly this smaller board, not a large 830-point board.
+- Exactly THREE ordinary clear 5mm LEDs on the breadboard, each with its OWN separate axial 330-ohm resistor in series. Label LED 1, LED 2, LED 3. Exactly three resistors, exactly three LEDs, all easy to distinguish. No resistor bypass.
+- One small round black TWO-LEG active buzzer on the breadboard, separate from all LEDs, sound opening visible. Clearly label Buzzer.
+- One HC-SR501 PIR motion sensor outside the board, recognizably a white faceted hemispherical Fresnel dome on a small green PCB with its three-pin header. It must be plainly visible and not cropped.
+- One black Logitech C270 HD USB webcam connected by USB to a laptop at the upper right. ESP32 has its own SEPARATE USB cable connected to the laptop. Webcam is not wired to ESP32 GPIO. Laptop screen has a tasteful illustrative "Smart Street" / "Live monitoring" dashboard and an ordinary empty walkway camera preview, no person, weapon, incident or alarm.
+- PIR sensor, ESP32, breadboard and webcam must all fit completely in frame.
+
+Wiring must be electrically coherent and easy to follow:
+GPIO26 -> individual 330-ohm resistor -> LED 1 anode; LED 1 cathode -> common GND.
+GPIO25 -> different 330-ohm resistor -> LED 2 anode; LED 2 cathode -> common GND.
+GPIO33 -> different 330-ohm resistor -> LED 3 anode; LED 3 cathode -> common GND.
+GPIO4 -> small low-current active buzzer positive; buzzer negative -> common GND.
+HC-SR501 OUT -> GPIO27, sensor VCC -> ESP32 VIN / USB 5V, sensor GND -> common GND.
+One ESP32 GND wire can fan out through a ground rail. All grounds common. DO NOT connect the GPIO26,25,33 signal nets together. DO NOT use GPIO24. Sensor signal is separate from power. Wires terminate in real headers/holes, not floating over plastic. Use well-separated, gently curved jumper paths.
+
+Make the image useful for identifying components with elegant short callout labels and thin leaders, placed outside hardware so they do not obscure it. Text:
+Title "SMART STREET PROTOTYPE"
+Labels "ESP32", "LED 1 · D26", "LED 2 · D25", "LED 3 · D33", "330 Ω each", "Buzzer · D4", "PIR · OUT D27", "Logitech C270", "USB to laptop", "Common GND".
+Small neat inset at bottom: "PIR: VCC → VIN / 5V · OUT → D27 · GND → GND".
+Small footer "Illustrative prototype layout".
+Use legible dark typography, minimal amber accents. Bright enough to see every component, realistic engineering presentation, not neon science fiction. No extra sensors, displays, batteries, relay modules, LEDs, circuit boards or lamp posts. Do not claim this is a photograph of the user's exact assembled circuit; render a faithful illustrative prototype based on the specified project.

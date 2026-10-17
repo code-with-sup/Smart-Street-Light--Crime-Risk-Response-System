@@ -258,7 +258,7 @@ function stageHTML({ fit = false, tall = false, showcase = false } = {}) {
         <div class="hud-controls">
           <button class="btn sm danger solid" data-act="sos-clear" title="Operator has responded" hidden>${ic("check")} Clear SOS</button>
           <button class="btn sm" data-act="cam-stop" title="Stop camera">${ic("stop")} Stop</button>
-          <button class="btn sm" data-act="cam-switch" title="Use the next camera">${ic("switch")}</button>
+          <button class="btn sm" data-act="cam-switch" title="Choose camera" aria-label="Switch camera">${ic("switch")}</button>
           <button class="btn sm" data-act="cam-mirror" title="Mirror the image">${ic("flip")}</button>
           <a class="btn sm" data-snap href="/api/snapshot" download="snapshot.jpg" title="Save a snapshot">${ic("image")}</a>
           <button class="btn sm" data-act="cam-full" title="Full screen">${ic("max")}</button>
@@ -333,9 +333,18 @@ function updateStage(root, d) {
 }
 
 const ACTIONS = {
-  "cam-start": (btn) => busy(btn, async () => { const r = await api("/api/camera/start", { method: "POST", body: {} }); toast(r.message); }),
+  "cam-start": (btn) => busy(btn, async () => { if (S.page === "live") return PAGES.live.connectCamera(); const r = await api("/api/camera/start", { method: "POST", body: {} }); toast(r.message); }),
   "cam-stop": (btn) => busy(btn, async () => { await api("/api/camera/stop", { method: "POST" }); }),
-  "cam-switch": (btn) => busy(btn, async () => { const r = await api("/api/camera/switch", { method: "POST" }); toast(r.message, r.ok ? "ok" : "error"); }),
+  "cam-switch": (btn) => {
+    if (S.page === "live") {
+      const select = $("#lv-camera");
+      select.scrollIntoView({ block: "center", behavior: "smooth" });
+      select.focus();
+      try { select.showPicker?.(); } catch { /* focus still exposes the keyboard selector */ }
+      return;
+    }
+    return busy(btn, async () => { const r = await api("/api/camera/switch", { method: "POST" }); toast(r.message, r.ok ? "ok" : "error"); });
+  },
   "cam-mirror": async () => { const r = await api("/api/camera/mirror", { method: "POST", body: { mirror: !(S.live && S.live.camera.mirror) } }); toast(r.mirror ? "Image mirrored" : "Mirror off"); },
   "voice-test": (btn) => busy(btn, async () => { const r = await api("/api/voice/test", { method: "POST" }); toast(r.message); }),
   "sos-clear": (btn) => busy(btn, async () => { await api("/api/sos/clear", { method: "POST" }); toast("SOS cleared"); }),
@@ -520,7 +529,7 @@ function incidentSlides(items, onChange) {
 /* ---------------------------------------------------------------- overview */
 const LADDER = [
   ["LOW", "Street clear · light dimmed at night, off by day"],
-  ["MEDIUM", "Someone at night, a crowd, or lingering · light 100%"],
+  ["MEDIUM", "Movement / motion detected · light 20% dim"],
   ["HIGH", "Weapon confirmed · light 100%, buzzer on, alert"],
 ];
 
@@ -599,7 +608,16 @@ PAGES.live = {
     const s = S.settings;
     root.innerHTML = `
       <div class="grid g-main">
-        ${stageHTML({ fit: true, tall: true })}
+        <div class="live-camera-panel">
+          <div class="camera-toolbar">
+            <div class="field camera-choice"><label for="lv-camera">Camera source</label>
+              <select class="input" id="lv-camera" disabled><option>Finding cameras…</option></select></div>
+            <button class="btn" id="lv-camera-refresh" title="Refresh connected cameras" aria-label="Refresh cameras">${ic("switch")}</button>
+            <button class="btn primary" id="lv-camera-connect" disabled>${ic("video")} <span>Start camera</span></button>
+            <div class="small muted camera-status" id="lv-camera-status" role="status">Plug in a USB webcam to choose it here.</div>
+          </div>
+          ${stageHTML({ fit: true, tall: true })}
+        </div>
         <div class="stack">
           <div class="card">
             <div class="card-head"><span class="chip-icon">${ic("cpu")}</span><div><h2>AI detector</h2><div class="sub" id="lv-models">—</div></div></div>
@@ -642,6 +660,17 @@ PAGES.live = {
       if (S.page === "live") startReel($(".stage", root), incidentSlides(items, loadReel));
     }).catch(() => {});
     loadReel();
+    this.cameraDevices = [];
+    this.cameraDemo = false;
+    this.cameraBusy = false;
+    this.cameraMessage = "";
+    $("#lv-camera-refresh").addEventListener("click", (e) => busy(e.currentTarget, () => this.loadCameras(true)));
+    $("#lv-camera-connect").addEventListener("click", () => this.connectCamera());
+    $("#lv-camera").addEventListener("change", () => { if (S.live) this.updateCameraControls(S.live); });
+    const refreshOnFocus = () => { if (S.page === "live") this.loadCameras(false); };
+    window.addEventListener("focus", refreshOnFocus);
+    S.cleanup.push(() => window.removeEventListener("focus", refreshOnFocus));
+    this.loadCameras(false);
     this.zones = (S.settings.zones || []).map((z) => ({ ...z }));
     this.renderZones();
     root.addEventListener("click", (e) => this.onZoneClick(e));
@@ -660,6 +689,58 @@ PAGES.live = {
         toast("Detection threshold updated");
       });
     });
+  },
+  async loadCameras(announce) {
+    const select = $("#lv-camera");
+    if (!select || this.cameraBusy) return;
+    const previous = select.value;
+    try {
+      const data = await api("/api/cameras", { quiet: !announce });
+      if (select !== $("#lv-camera")) return;
+      this.cameraDevices = data.cameras;
+      this.cameraDemo = data.demo;
+      this.cameraMessage = data.message;
+      select.innerHTML = data.cameras.length ? data.cameras.map((d) => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("")
+        : `<option value="">${data.demo ? "Demo video" : "No cameras detected"}</option>`;
+      const selected = data.cameras.find((d) => d.id === previous) || data.cameras.find((d) => d.id === data.selected_id)
+        || data.cameras.find((d) => d.index === data.selected_index) || data.cameras[0];
+      if (selected) select.value = selected.id;
+      select.disabled = !data.cameras.length;
+      if (S.live) this.updateCameraControls(S.live);
+      if (announce) toast(data.cameras.length ? `${data.cameras.length} camera${data.cameras.length === 1 ? "" : "s"} found` : data.message, data.cameras.length || data.demo ? "ok" : "error");
+    } catch (error) {
+      if (select !== $("#lv-camera")) return;
+      this.cameraMessage = "Could not refresh cameras. Try again.";
+      if (!this.cameraDevices.length) select.innerHTML = '<option value="">Camera list unavailable</option>';
+      if (S.live) this.updateCameraControls(S.live);
+    }
+  },
+  updateCameraControls(d) {
+    const select = $("#lv-camera"), button = $("#lv-camera-connect");
+    if (!select || !button) return;
+    const selected = this.cameraDevices.find((c) => c.id === select.value);
+    const same = d.camera.running && selected && (d.camera.device_id ? selected.id === d.camera.device_id : selected.index === d.camera.index);
+    button.disabled = this.cameraBusy || (!selected && !this.cameraDemo) || same || (this.cameraDemo && d.camera.running);
+    $("span", button).textContent = this.cameraBusy ? "Connecting…" : same ? "Connected" : d.camera.running ? "Switch camera" : "Start camera";
+    $("#lv-camera-status").textContent = this.cameraMessage || (d.camera.running
+      ? `Live: ${d.camera.name || `Camera ${d.camera.index + 1}`}${selected && !same ? ` · Choose Switch camera to use ${selected.name}` : ""}`
+      : "Choose a camera, then Start camera. Plugged in a webcam? Refresh the list.");
+  },
+  async connectCamera() {
+    if (this.cameraBusy) return;
+    const selected = this.cameraDevices.find((c) => c.id === $("#lv-camera")?.value);
+    if (!selected && !this.cameraDemo) { toast("Choose a camera first, or refresh the list.", "error"); return; }
+    this.cameraBusy = true;
+    if (S.live) this.updateCameraControls(S.live);
+    try {
+      const r = await api("/api/camera/start", { method: "POST", body: selected ? { index: selected.index, device_id: selected.id } : {} });
+      S.streamKey++;
+      S.settings.camera_index = selected?.index ?? 0;
+      toast(r.message);
+    } finally {
+      this.cameraBusy = false;
+      if (S.page === "live" && S.live) this.updateCameraControls(S.live);
+    }
   },
   /* ---------------------------------------------------------- zones */
   zoneSummary(z) {
@@ -803,6 +884,7 @@ PAGES.live = {
   },
   update(d) {
     updateStage($("#page"), d);
+    this.updateCameraControls(d);
     const det = d.detector;
     const video = d.crime_video || {};
     const prediction = video.prediction;
@@ -1151,6 +1233,13 @@ PAGES.sensors = {
             </div>
           </div>
           <div class="card">
+            <div class="card-head"><span class="chip-icon cyan">${ic("sliders")}</span><div><h2>PIR motion response</h2><div class="sub">Pause motion response whenever you want</div></div></div>
+            <div class="card-body stack" style="gap:12px">
+              <label class="row" style="gap:12px"><span class="toggle"><input type="checkbox" id="pir-enable" aria-label="Enable PIR motion response"><span></span></span><span class="strong" id="pir-enable-label">PIR paused</span></label>
+              <div class="small muted">When enabled: PIR motion lights the LED at 20% dim light. Weapon and crime alarms activate 100% bright light and continuous buzzer.</div>
+            </div>
+          </div>
+          <div class="card">
             <div class="card-head"><span class="chip-icon amber">${ic("sliders")}</span><div><h2>Manual test</h2><div class="sub">Overrides the AI response for a few seconds</div></div></div>
             <div class="card-body stack" style="gap:14px">
               <div class="field"><label>Brightness</label><div class="range-row"><input type="range" min="0" max="100" step="5" value="100" id="t-bright"><output id="t-bright-out">100%</output></div></div>
@@ -1191,17 +1280,26 @@ PAGES.sensors = {
       <div class="card">
         <div class="card-head"><span class="chip-icon">${ic("cpu")}</span><div><h2>Wiring & firmware</h2><div class="sub">firmware/esp32_street_light/esp32_street_light.ino</div></div></div>
         <div style="overflow-x:auto"><table class="table"><thead><tr><th>Part</th><th>ESP32 pin</th><th>Notes</th></tr></thead><tbody>
-          <tr><td class="strong">Street light LED</td><td class="mono">GPIO 2</td><td class="muted">220/330 Ω series resistor for a single LED. Use a transistor/MOSFET for a larger lamp.</td></tr>
-          <tr><td class="strong">Buzzer</td><td class="mono">GPIO 4</td><td class="muted">Active buzzer by default; use a driver for higher current. Passive: set ACTIVE_BUZZER = false in the sketch.</td></tr>
-          <tr><td class="strong">PIR motion sensor</td><td class="mono">GPIO 5</td><td class="muted">HC-SR501 OUT pin. Power from 5 V, output is 3.3 V safe.</td></tr>
+          <tr><td class="strong">Street light LED</td><td class="mono">GPIO 26</td><td class="muted">D26 → A6; resistor E6–E10; LED + C10 / − C13; GND → B13. Use a 220/330 Ω series resistor.</td></tr>
+          <tr><td class="strong">Buzzer</td><td class="mono">GPIO 4</td><td class="muted">Buzzer + B19 / − B22. D4 → any free A19–E19 hole (not row 17); jumper E22 → E13 for GND. Active buzzer by default; use a driver for higher current. Passive: set ACTIVE_BUZZER = false in the sketch.</td></tr>
+          <tr><td class="strong">PIR motion sensor</td><td class="mono">GPIO 27</td><td class="muted">PIR OUT → D27; VCC → VIN/5V (USB powered); GND → GND. Match sensor labels; do not power HC-SR501 VCC from 3V3.</td></tr>
           <tr><td class="strong">SOS push button</td><td class="mono">GPIO 14</td><td class="muted">Optional: disabled by default (HAS_SOS_BUTTON = false). When enabled, wire button to GND using the internal pull-up.</td></tr>
           <tr><td class="strong">LDR</td><td class="mono">GPIO 34</td><td class="muted">Optional: disabled by default (HAS_LDR = false). Voltage divider with a 10 kΩ resistor to 3.3 V.</td></tr>
         </tbody></table></div>
         <div class="card-body small muted" style="border-top:1px solid var(--border)">
           Flash the sketch with Arduino IDE (board: <code>ESP32 Dev Module</code>), plug the ESP32 in by USB, then pick its port above.
-          Serial: 115200 baud. PIR warm-up: 60 s. After 5 s without PC commands, PIR controls dim/full lighting and the buzzer turns off. Without the optional LDR, fallback always treats the scene as dark.
+          Firmware v6: LED D26, buzzer D4, PIR OUT D27. Re-upload the sketch after changing pins. Enable or pause PIR above: motion requests dim lighting without sound. Weapon/crime alarms and manual tests control the buzzer separately; it runs for at least 3 s and can stay on during an ongoing threat. Manual tests temporarily pause PIR. Serial: 115200 baud. PIR warm-up: 60 s. The ESP32 remembers whether PIR is paused. Without the optional LDR, fallback always treats the scene as dark.
         </div>
       </div>`;
+    $("#pir-enable").addEventListener("change", async (e) => {
+      const control = e.currentTarget, enabled = control.checked;
+      control.disabled = true;
+      try {
+        S.settings = await api("/api/settings", { method: "PUT", body: { pir_enabled: enabled } });
+        toast(enabled ? "PIR enabled: silent dim lighting" : "PIR paused; camera alarms remain available");
+      } catch (error) { control.checked = !enabled; }
+      finally { control.disabled = false; }
+    });
     $("#t-bright").addEventListener("input", (e) => { $("#t-bright-out").textContent = `${e.target.value}%`; });
     $("#t-run").addEventListener("click", () => this.test(+$("#t-bright").value, $("#t-buzz").checked, +$("#t-secs").value));
     $$("[data-quick]", root).forEach((b) => b.addEventListener("click", () => { const [v, z] = b.dataset.quick.split(","); this.test(+v, z === "1", z === "1" ? 1.5 : 5); }));
@@ -1231,6 +1329,9 @@ PAGES.sensors = {
     const hw = d.hardware;
     if (!$("#hw-kv")) return;
     const serial = hw.mode === "serial";
+    const pirEnabled = !!hw.pir_enabled;
+    if (!$("#pir-enable").disabled) $("#pir-enable").checked = pirEnabled;
+    $("#pir-enable-label").textContent = pirEnabled ? "PIR enabled — silent dim lighting" : "PIR paused";
     $("#hw-sub").textContent = serial ? `USB serial · ${hw.port}` : "Simulator: outputs follow the AI, sensors are simulated";
     const badge = $("#hw-badge");
     badge.className = `badge ${serial ? (hw.online ? "green" : "red") : "violet"}`;
@@ -1250,12 +1351,12 @@ PAGES.sensors = {
     const buzz = $("#lamp-buzzer");
     buzz.className = `badge buzz ${hw.buzzer ? "red" : ""}`;
     buzz.textContent = hw.buzzer ? "Buzzer ON" : "Buzzer off";
-    $("#lamp-sub").textContent = hw.override ? "Manual test running" : `Following AI risk: ${d.risk.level}`;
+    $("#lamp-sub").textContent = hw.override ? "Manual test running" : (hw.online && hw.pir_alarm && d.risk.level !== "HIGH" ? "PIR: silent dim lighting" : `Following AI risk: ${d.risk.level}`);
     $("#lamp-kv").innerHTML = `
       <dt>Brightness</dt><dd>${hw.brightness}%</dd>
       <dt>Buzzer</dt><dd>${hw.buzzer ? '<span class="badge red">ON</span>' : "Off"}</dd>
       <dt>Strobe</dt><dd>${hw.strobe ? '<span class="badge red">Flashing</span>' : "Off"}</dd>
-      <dt>PIR motion</dt><dd>${hw.pir ? '<span class="badge amber">Motion</span>' : "Still"}</dd>
+      <dt>PIR motion</dt><dd>${!pirEnabled ? '<span class="badge">Paused</span>' : (hw.pir ? '<span class="badge amber">Motion</span>' : "Still")}</dd>
       <dt>Day / night</dt><dd>${d.night.is_night ? "Night" : "Day"} <span class="faint small">(${d.night.source === "ldr" ? "LDR" : "clock"})</span></dd>`;
     const ldr = hw.ldr;
     $("#ldr-val").textContent = ldr == null ? "—" : `${ldr} / 4095`;
@@ -1462,7 +1563,7 @@ PAGES.settings = {
         ${range("weapon_confidence", "Weapon confidence", 0.05, 0.95, 0.05, true, "Higher = fewer false alarms")}
         ${range("crime_confidence", "Crime confidence", 0.05, 0.95, 0.05, true, "Violence, fight, robbery. Higher = fewer false alarms")}
         ${num("detect_interval_ms", "Detection interval (ms)", "Lower = faster reaction, more CPU", 'min="50" max="2000" step="50"')}
-        ${num("camera_index", "Camera number", "0 = built-in, 1+ = USB webcams", 'min="0" max="9"')}
+        ${num("camera_index", "Camera number", "Choose named cameras in Live monitoring; numbering can change", 'min="0" max="9"')}
         <div class="field"><label for="s-mirror">Mirror image</label><label class="toggle"><input type="checkbox" id="s-mirror" data-key="mirror" ${s.mirror ? "checked" : ""}><span></span></label></div>
         <div class="field"><label for="s-weapon_shape_check">Weapon contour check · experimental</label><label class="toggle"><input type="checkbox" id="s-weapon_shape_check" data-key="weapon_shape_check" ${s.weapon_shape_check ? "checked" : ""}><span></span></label><div class="hint">Adds blade-like / scissors-like / uncertain shape hints. Keeps YOLO labels and SOS unchanged.</div></div>
         <div class="field"><label for="s-tamper_detection">Camera tamper detection</label><label class="toggle"><input type="checkbox" id="s-tamper_detection" data-key="tamper_detection" ${s.tamper_detection ? "checked" : ""}><span></span></label>

@@ -37,3 +37,7 @@ yolo11m.pt
 
 # Local experimental video classifier weights
 /models/video/*.pt
+
+# Local project consolidation: private legacy files and audit manifests
+/legacy-icloud-project/
+/consolidation-reports/

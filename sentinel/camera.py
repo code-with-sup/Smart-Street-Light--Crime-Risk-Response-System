@@ -21,12 +21,49 @@ MAX_PROBE_INDEX = 4
 MAX_READ_FAILURES = 30
 
 
+def _mac_devices() -> list[dict]:
+    """Use the same AVFoundation device ordering as OpenCV, without opening cameras."""
+    import objc
+
+    objc.loadBundle("AVFoundation", {}, bundle_path="/System/Library/Frameworks/AVFoundation.framework")
+    cls = objc.lookUpClass("AVCaptureDevice")
+    devices = list(cls.devicesWithMediaType_("vide")) + list(cls.devicesWithMediaType_("muxx"))
+    devices.sort(key=lambda device: str(device.uniqueID()))
+    return [{"index": i, "id": str(device.uniqueID()), "name": str(device.localizedName())}
+            for i, device in enumerate(devices[:10])]
+
+
+def camera_devices() -> tuple[list[dict], str]:
+    """List device names without taking over the current video feed."""
+    if sys.platform == "darwin":
+        try:
+            devices = _mac_devices()
+            return devices, "" if devices else "No cameras detected. Plug in your USB webcam, then refresh."
+        except Exception:
+            # Numbered inputs remain usable if native discovery is unavailable.
+            pass
+    elif sys.platform.startswith("linux"):
+        devices = []
+        for path in sorted(Path("/sys/class/video4linux").glob("video*")):
+            try:
+                index = int(path.name[5:])
+                if index < 10:
+                    devices.append({"index": index, "id": f"index:{index}", "name": path.joinpath("name").read_text().strip()})
+            except (OSError, ValueError):
+                continue
+        if devices:
+            return devices, ""
+    return [{"index": i, "id": f"index:{i}", "name": f"Camera {i + 1}"} for i in range(MAX_PROBE_INDEX)], \
+        "Camera names are unavailable. Try a numbered input; connect your USB webcam before refreshing."
+
+
 def _open(index: int):
     """Open a camera that actually delivers a frame (macOS can open but not read)."""
     backends = []
     if sys.platform == "darwin" and hasattr(cv2, "CAP_AVFOUNDATION"):
         backends.append(cv2.CAP_AVFOUNDATION)
-    backends.append(cv2.CAP_ANY)
+    else:
+        backends.append(cv2.CAP_ANY)
     for backend in dict.fromkeys(backends):
         capture = cv2.VideoCapture(index, backend)
         if not capture.isOpened():
@@ -90,52 +127,74 @@ class Camera:
         self.frame_id = 0
         self.running = False
         self.index = 0
+        self.device_id = ""
+        self.name = ""
         self.mirror = False
         self.fps = 0.0
         self.error = ""
         self.size = (0, 0)
 
-    def start(self, index: int | None = None) -> tuple[bool, str]:
+    def devices(self) -> dict:
+        video = _video_override()
+        if video is not None:
+            return {"cameras": [], "demo": True, "message": f"Demo source: {video.name}",
+                    "selected_index": self.index, "selected_id": self.device_id}
+        cameras, message = camera_devices()
+        return {"cameras": cameras, "demo": False, "message": message,
+                "selected_index": self.index, "selected_id": self.device_id}
+
+    def start(self, index: int | None = None, device_id: str | None = None) -> tuple[bool, str]:
         with self._lifecycle:
-            if self.running:
-                return True, f"Camera {self.index + 1} already running"
             video = _video_override()
             if video is not None:
+                if index is not None or device_id:
+                    return False, "Demo video is active. Restart without --video to use a webcam."
+                if self.running:
+                    return True, f"{self.name or 'Demo video'} already running"
                 source = FileSource(video)
                 okay, frame = source.read() if source.isOpened() else (False, None)
                 if not okay:
                     source.release()
                     self.error = f"Could not read video file {video}"
                     return False, self.error
+                self.name, self.device_id = video.name, ""
                 self._begin(source, 0, frame)
                 return True, f"Playing {video.name} as the camera"
-            preferred = self.index if index is None else index
-            order = [preferred] + [i for i in range(MAX_PROBE_INDEX) if i != preferred]
+            selected_id = device_id or (self.device_id if index is None else "")
+            devices, _ = camera_devices()
+            selected = next((d for d in devices if d["id"] == selected_id), None) if selected_id else None
+            if selected_id and selected is None:
+                return False, "The selected camera is disconnected. Plug it in and refresh the camera list."
+            preferred = selected["index"] if selected else self.index if index is None else index
+            if self.running and (selected_id == self.device_id if selected_id else preferred == self.index):
+                return True, f"{self.name or f'Camera {self.index + 1}'} already running"
+            # Explicit selection must never silently fall back to a different camera.
+            order = [preferred] if index is not None or selected_id else [preferred] + [i for i in range(MAX_PROBE_INDEX) if i != preferred]
             for candidate in order:
                 capture, frame = _open(candidate)
                 if capture is not None:
+                    chosen = next((d for d in devices if d["index"] == candidate), None)
+                    # Keep the working source until the new camera delivers its first frame.
+                    self._stop_locked()
+                    self.name = chosen["name"] if chosen else f"Camera {candidate + 1}"
+                    self.device_id = chosen["id"] if chosen else ""
                     self._begin(capture, candidate, frame)
-                    return True, f"Camera {candidate + 1} connected"
-            self.error = ("No camera delivered a frame. Close other apps using the camera and allow camera "
-                          "access for this app in System Settings > Privacy & Security > Camera.")
+                    return True, f"{self.name} connected"
+            self.error = ("The selected camera could not deliver a frame. Close other apps using it and allow camera "
+                          "access in System Settings > Privacy & Security > Camera, then try again.")
             return False, self.error
 
     def switch(self) -> tuple[bool, str]:
         with self._lifecycle:
             if _video_override() is not None:
                 return False, "Demo video is playing; there is no other camera to switch to"
-            if not self.running:
-                self.index = (self.index + 1) % MAX_PROBE_INDEX
-                return True, f"Camera {self.index + 1} will be used on next start"
-            current = self.index
-            for offset in range(1, MAX_PROBE_INDEX):
-                candidate = (current + offset) % MAX_PROBE_INDEX
-                capture, frame = _open(candidate)
-                if capture is not None:
-                    self._stop_locked()
-                    self._begin(capture, candidate, frame)
-                    return True, f"Switched to camera {candidate + 1}"
-            return False, "Only one camera found"
+            devices, _ = camera_devices()
+            candidates = [d for d in devices if d["id"] != self.device_id and d["index"] != self.index]
+            for device in candidates:
+                okay, message = self.start(device["index"], device["id"])
+                if okay:
+                    return okay, message
+            return False, "No other camera is available. Plug in your USB webcam and refresh."
 
     def _begin(self, capture, index: int, frame) -> None:
         stop_event = threading.Event()

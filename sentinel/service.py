@@ -103,6 +103,7 @@ class Sentinel:
         self.settings = self.store.settings()
         self.camera = Camera()
         self.camera.index = self.settings["camera_index"]
+        self.camera.device_id = self.settings["camera_device_id"]
         self.camera.mirror = self.settings["mirror"]
         self.detector: Detector | None = None
         self.detector_loading = True
@@ -135,6 +136,8 @@ class Sentinel:
         self._today_cache: tuple[float, int] = (0.0, 0)
         self._reset_scene = False
         self._last_fresh = 0.0
+        self._prev_gray = None
+        self._camera_motion_until = 0.0
         self.clips = ClipRecorder(EVIDENCE_DIR, self._clip_saved)
         self._energy = {"t": 0.0, "day": "", "lamp_wh": 0.0, "baseline_wh": 0.0, "night_s": 0.0, "flushed": 0.0}
         self._last_escalation_check = 0.0
@@ -267,7 +270,7 @@ class Sentinel:
     def _tick(self, last_frame: int) -> int:
         settings = self.settings
         self.is_night, self.night_source = self._night()
-        motion = self.hardware.pir if self.hardware.mode == "serial" and self.hardware.online else False
+        motion = self.hardware.pir if self.settings["pir_enabled"] and self.hardware.mode == "serial" and self.hardware.online else False
         frame_id, frame = self.camera.latest()
         detector = self.detector
         if self._reset_scene:  # done on this thread so it never races the tracker mid-update
@@ -278,6 +281,8 @@ class Sentinel:
             self.behavior.reset()
             self.tamper.reset()
             self.zone_monitor.reset()
+            self._prev_gray = None
+            self._camera_motion_until = 0.0
             if detector and detector.ready:
                 detector.reset_tracks()
         now = time.time()
@@ -295,6 +300,18 @@ class Sentinel:
                 self._tamper_events = self.tamper.update(frame, now) if settings["tamper_detection"] else []
                 last_frame, self._last_fresh = frame_id, now
                 self.crime_video.observe(frame)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                gray = cv2.GaussianBlur(gray, (21, 21), 0)
+                has_motion = False
+                if self._prev_gray is not None and self._prev_gray.shape == gray.shape:
+                    delta = cv2.absdiff(self._prev_gray, gray)
+                    thresh = cv2.threshold(delta, 25, 255, cv2.THRESH_BINARY)[1]
+                    motion_pixels = int(cv2.countNonZero(thresh))
+                    if motion_pixels > max(1000, int(gray.shape[0] * gray.shape[1] * 0.007)):
+                        has_motion = True
+                self._prev_gray = gray
+                if has_motion:
+                    self._camera_motion_until = now + 1.5
             elif now - self._last_fresh > STALE_FRAME_SECONDS:
                 detections, frame = [], None  # camera stalled: don't keep acting on an old frame
             elif self._sos_new:
@@ -313,6 +330,8 @@ class Sentinel:
 
         if frame is None or not self.camera.running:
             self.crime_video.reset()
+            self._prev_gray = None
+            self._camera_motion_until = 0.0
         self._observe_weapon_presence(detections, active=self.camera.running and frame is not None)
         events = self.behavior.update(detections, now, self.camera.size) if settings["behaviour_analysis"] else []
         if self.camera.running and frame is not None:
@@ -321,7 +340,8 @@ class Sentinel:
         if now < self._sos_until:
             events = [Event("sos", "SOS button pressed — help requested", "HIGH", confidence=1.0), *events]
         previous = self.result.level
-        result = self.risk.evaluate(detections, events=events, is_night=self.is_night, motion=motion, settings=settings)
+        camera_motion = bool(self.camera.running and frame is not None and now < self._camera_motion_until)
+        result = self.risk.evaluate(detections, events=events, is_night=self.is_night, motion=motion, settings=settings, camera_motion=camera_motion)
         with self._lock:
             self.detections, self.result, self.events = detections, result, events
             self._det_version += 1
@@ -380,7 +400,7 @@ class Sentinel:
 
     def _drive(self, result: RiskResult, detections: list[Detection]) -> None:
         people = sum(d.category == "person" for d in detections)
-        self.hardware.configure(self.settings["ldr_dark_threshold"], self.settings["low_brightness"])
+        self.hardware.configure(self.settings["ldr_dark_threshold"], self.settings["low_brightness"], pir_enabled=self.settings["pir_enabled"])
         strobe = result.level == "HIGH" and self.settings["strobe_on_high"]
         self.hardware.drive(result.brightness, result.buzzer, people=people, is_night_clock=self._clock_night(), strobe=strobe)
 
@@ -666,6 +686,7 @@ class Sentinel:
         return {
             "time": time.time(),
             "camera": {"running": cam.running, "index": cam.index, "fps": round(cam.fps, 1), "mirror": cam.mirror,
+                       "name": getattr(cam, "name", ""), "device_id": getattr(cam, "device_id", ""),
                        "size": cam.size, "health": self.tamper.status if cam.running else "off"},
             "detector": {
                 "loading": self.detector_loading, "ready": bool(detector and detector.ready),
@@ -693,11 +714,16 @@ class Sentinel:
     def update_settings(self, values: dict) -> dict:
         clean = {k: _coerce(k, v) for k, v in values.items()
                  if k in DEFAULT_SETTINGS and k not in ("light_location", "zones")}  # those have their own endpoints
+        if "camera_index" in clean and "camera_device_id" not in clean:
+            clean["camera_device_id"] = ""  # numeric settings explicitly replace a saved named selection
         self.settings = self.store.save_settings(clean)
+        if "pir_enabled" in clean:
+            self.hardware.set_pir_enabled(clean["pir_enabled"])
         if "mirror" in clean:
             self.camera.mirror = clean["mirror"]
         if "camera_index" in clean and not self.camera.running:
             self.camera.index = clean["camera_index"]
+            self.camera.device_id = clean.get("camera_device_id", "")
         model_changed = "model" in clean and (self.detector is None or clean["model"] != self.detector.model_name)
         pose_changed = "behaviour_analysis" in clean and self.detector is not None and clean["behaviour_analysis"] != self.detector.behaviour
         if model_changed or pose_changed:

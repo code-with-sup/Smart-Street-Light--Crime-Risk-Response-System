@@ -125,15 +125,21 @@ def state() -> dict:
 # ----------------------------------------------------------------- camera
 class CameraStart(BaseModel):
     index: int | None = Field(default=None, ge=0, le=9)
+    device_id: str | None = Field(default=None, max_length=256)
+
+
+@app.get("/api/cameras")
+def cameras() -> dict:
+    return sentinel.camera.devices()
 
 
 @app.post("/api/camera/start")
 def camera_start(body: CameraStart) -> dict:
-    ok, message = sentinel.camera.start(body.index)
+    ok, message = sentinel.camera.start(body.index, body.device_id)
     if not ok:
         raise HTTPException(409, message)
     sentinel.camera_changed()
-    sentinel.update_settings({"camera_index": sentinel.camera.index})
+    sentinel.update_settings({"camera_index": sentinel.camera.index, "camera_device_id": sentinel.camera.device_id})
     sentinel.note("system", message)
     return {"message": message}
 
@@ -151,7 +157,7 @@ def camera_switch() -> dict:
     ok, message = sentinel.camera.switch()
     if ok:
         sentinel.camera_changed()
-        sentinel.settings = sentinel.store.save_settings({"camera_index": sentinel.camera.index})
+        sentinel.settings = sentinel.store.save_settings({"camera_index": sentinel.camera.index, "camera_device_id": sentinel.camera.device_id})
     return {"ok": ok, "message": message}
 
 

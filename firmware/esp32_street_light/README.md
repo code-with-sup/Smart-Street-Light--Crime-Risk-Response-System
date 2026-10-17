@@ -13,9 +13,9 @@ wire colours and header order alone do not establish pin functions.
 | Component | Connection |
 | --- | --- |
 | HC-SR501 PIR VCC | ESP32 5V/VIN powered by USB |
-| PIR OUT | GPIO 5 |
+| PIR OUT (red signal wire) | GPIO 27 |
 | PIR GND | ESP32 GND |
-| LED anode (long leg) | GPIO 2 through a 330 ohm resistor |
+| LED anode (long leg) | GPIO 26 through a 220/330 ohm resistor |
 | LED cathode (short leg/flat side) | GND |
 | Small active buzzer + | GPIO 4 |
 | Buzzer - | GND |
@@ -31,16 +31,19 @@ and supply it at its rated voltage, with common ground.
 
 ## Behaviour
 
-- Allow 60 seconds for the PIR to settle after power-up.
-- Without the dashboard: no motion -> LED 20%; motion -> LED 100%.
-  The buzzer stays off: motion alone does not establish a crime.
-- With the dashboard: LOW/MEDIUM/HIGH controls LED brightness and buzzer.
-  HIGH can strobe the LED. PIR state is returned every 500 milliseconds.
-- If dashboard commands stop for five seconds, standalone PIR lighting resumes.
-- LDR and physical SOS button are disabled by default. To add them, wire
-  GPIO34 to an LDR divider and GPIO14 to a button to GND, then enable
-  `HAS_LDR` / `HAS_SOS_BUTTON`. Without an LDR the dashboard uses its clock
-  for day/night; the firmware sends -1 instead of a floating sensor reading.
+- **PIR motion response** in Sensors & lights enables or pauses PIR lighting.
+  New installs start paused. Pausing does not disable weapon/crime alarms.
+- Allow 60 seconds for sensor warm-up. Enabled PIR motion raises the LED to
+  at least the configured dim level (20% by default). PIR movement does not
+  sound the buzzer or send crime notifications/SOS.
+- Camera weapon/crime alarms and manual buzzer tests control the buzzer separately.
+  Buzzer output is held for at least 3 seconds; an ongoing threat can keep it on longer.
+- Firmware remembers PIR enable/pause in ESP32 preferences. Manual tests
+  temporarily pause PIR so that the selected test output can be checked.
+- HC-SR501 sensitivity/hold time are adjusted on its physical potentiometers.
+  PIR has no distance measurement; an exact close-only threshold needs a
+  distance sensor. Reducing SENS may reduce range but cannot guarantee it.
+- LDR / physical SOS remain disabled by default (GPIO34 / GPIO14).
 
 ## Connect to the project
 
@@ -66,7 +69,47 @@ PWM API reference: https://docs.espressif.com/projects/arduino-esp32/en/latest/a
 
 Manual aliases `L`, `M`, `H` also work in newline mode. Repeating the same
 command reapplies its outputs. PIR never cancels a fresh HIGH command.
-The uploaded guide mentioned GPIO15 while its sketch used GPIO5; this version
-consistently uses GPIO5. GPIO2 and GPIO5 are boot-strapping pins on classic
-ESP32: if external devices prevent boot/upload, disconnect them during upload
-or move them to GPIO25/GPIO27 and update the constants.
+Firmware **v6** uses GPIO26 for the external LED, GPIO4 for the buzzer,
+and GPIO27 for the PIR signal. It does not drive the built-in GPIO2 LED.
+Re-upload this sketch after updating: changing the Python dashboard alone
+cannot change pins in firmware already running on the ESP32.
+
+## Current 30-row breadboard arrangement
+
+This arrangement works on the smaller breadboard. Holes A–E in the same
+numbered row connect internally; a different numbered row is a separate node.
+
+| Part / wire | Exact connection |
+| --- | --- |
+| Resistor | E6 to E10 |
+| LED long leg (+) | C10 |
+| LED short leg (-) | C13 |
+| White LED wire | ESP32 D26 to A6 |
+| Yellow ground wire | ESP32 GND to B13 |
+| Buzzer positive (check its + mark) | B19 |
+| Buzzer negative | B22 |
+| Blue buzzer signal wire | ESP32 D4 to any free A19–E19 hole, **not row 17** |
+| Buzzer ground return | E22 to E13, joining the existing yellow GND |
+| PIR red OUT wire | ESP32 D27 |
+| PIR green GND wire | ESP32 GND |
+| PIR brown VCC wire | ESP32 VIN/5V with USB power, **not 3V3** |
+
+Remove the old buzzer return to an unconnected power rail when using the
+direct E22-to-E13 ground jumper. A red/blue line is only a label: a rail is
+not powered or grounded until a wire connects it. Match PIR labels rather
+than relying only on wire colours. PIR input uses an internal pull-down so
+a disconnected signal wire is less likely to report floating motion.
+
+## What triggers the outputs
+
+Confirmed weapon/crime detections request full LED and the independent
+camera alarm. Model detections require two of the last three fresh passes;
+sustained HIGH behaviour events also trigger it. Camera HIGH is held for
+eight seconds after a threat. PIR motion does not activate the buzzer. The
+camera alarm may continue when a crime threat is still present, even if PIR is paused.
+
+Protocol: `SET <brightness> <camera-buzzer> [strobe]` controls host outputs.
+`MOTION 0` / `MOTION 1` pauses/enables local PIR response independently.
+`PING` returns firmware identity and `PONG`. Firmware v6 appends PIR-enabled
+and legacy PIR-motion-window fields to each STATE report, after the original
+fields. The legacy motion-window flag does not mean the buzzer is sounding.

@@ -42,7 +42,12 @@ py -3.12 -m venv .venv
 ```
 
 The browser opens the landing page at **http://127.0.0.1:8000**. Click **Open control room**
-(or go to **http://127.0.0.1:8000/app**), then press **Start camera**.
+(or go to **http://127.0.0.1:8000/app**). In **Live monitoring**, choose a
+**Camera source**, then press **Start camera**. For a Logitech USB webcam, plug it in,
+press **Refresh cameras**, and select its name (for example, **C270 HD WEBCAM**).
+While video is running, choose another source and press **Switch camera**.
+The switch icon in the video controls opens the same camera selector. If a selected
+webcam is unavailable, the app reports it and keeps any working feed running.
 
 On macOS, run it from **Terminal.app** and click **Allow** when asked for camera access.
 No webcam? Play a video as the camera: `run.py --video street.mp4`.
@@ -128,3 +133,7 @@ trained class. YOLO's label, confidence, category and existing weapon SOS rule
 remain intact. Synthetic tests verify intended geometry and fallbacks; live
 accuracy must be evaluated separately. Original images and model weights are
 unchanged.
+
+## Running in Antigravity or Terminal
+
+See [RUN_PROJECT.md](RUN_PROJECT.md) for the current project path, verified launch commands, and the Antigravity **Run Smart Street** task.

@@ -168,6 +168,14 @@ table.table { width: 100%; border-collapse: collapse; }
 .stat-sub { color: var(--faint); font-size: 12px; }
 
 /* ---------- stage: camera / scene with HUD ---------- */
+.live-camera-panel { min-width: 0; align-self: start; }
+.camera-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 0 0; }
+.camera-choice { flex: 1; min-width: 180px; }
+.camera-choice select { width: 100%; }
+.camera-status { flex-basis: 100%; overflow-wrap: anywhere; }
+.live-camera-panel > .stage { width: 100%; min-width: 0; border-radius: 0 0 12px 12px; }
+@media (max-width: 600px) { .camera-choice { flex-basis: 100%; } #lv-camera-connect { flex: 1; } }
+
 .stage { position: relative; border-radius: 12px; overflow: hidden; background: var(--feed-bg); aspect-ratio: 16 / 8; min-height: 340px; border: 1px solid var(--border); box-shadow: var(--shadow); isolation: isolate; }
 .stage.tall { aspect-ratio: 16 / 9; }
 .stage-media { position: absolute; inset: 0; }

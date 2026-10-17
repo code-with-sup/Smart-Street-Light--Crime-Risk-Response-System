@@ -11,3 +11,4 @@ fpdf2>=2.7
 python-dotenv>=1.0
 tzdata; sys_platform == "win32"
 lap>=0.5.12
+pyobjc-core>=10; sys_platform == "darwin"
