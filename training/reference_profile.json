@@ -1,0 +1,155 @@
+{
+  "counts": {
+    "knife": 19,
+    "gun": 18,
+    "sword": 4,
+    "scissors": 18,
+    "talwar": 1,
+    "bomb": 1,
+    "ruler": 1,
+    "screwdriver": 1,
+    "hammer": 14,
+    "stick": 4,
+    "rod": 4,
+    "straight_razor": 4,
+    "blade": 2
+  },
+  "reference_only": true,
+  "missing_requested_classes": [
+    "katta"
+  ],
+  "aliases": {
+    "ustara": "straight_razor",
+    "wooden rod": "stick",
+    "metal rod": "rod",
+    "razor blade": "blade"
+  },
+  "firearm_subtypes": "Source-verified reference metadata only; YOLO boxes use gun, not exact model labels",
+  "models": {
+    "weapon": "models/custom/weapon.pt",
+    "ucf": "runs/dataset-training/ucf-video-baseline.pt",
+    "rejected_weapon_candidate_mAP50": 0.0035188536953242853
+  },
+  "firearm_references": [
+    {
+      "model_or_variant": "Colt M1911",
+      "source": "https://commons.wikimedia.org/wiki/File:Colt_M1911_Pistol_from_1912_Army_manual.png",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Smith & Wesson Model 10",
+      "source": "https://commons.wikimedia.org/wiki/File:Smith_and_Wesson_Model_10-5.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "Beretta M9",
+      "source": "https://commons.wikimedia.org/wiki/File:Berretta_M9_(no_background).png",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "model_or_variant": "SIG Sauer P320",
+      "source": "https://commons.wikimedia.org/wiki/File:SIG_Sauer_P320_compact_pistol.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "AK-47",
+      "source": "https://commons.wikimedia.org/wiki/File:AK-47_assault_rifle.jpg",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "AR-15",
+      "source": "https://commons.wikimedia.org/wiki/File:AR-15_Type_Rifle_in_Wall_Mount.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "M4A1",
+      "source": "https://commons.wikimedia.org/wiki/File:M4A1-flattop.png",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Ruger 10/22",
+      "source": "https://commons.wikimedia.org/wiki/File:Ruger_10-22_Semiautomatic_Rimfire_Carbine-NMAH-AHB2015q116607.jpg",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Winchester Model 70",
+      "source": "https://commons.wikimedia.org/wiki/File:Winchester_Model_70_Classic_Featherweight_.300_WSM.jpg",
+      "license": "CC BY 4.0"
+    },
+    {
+      "model_or_variant": "Remington 870",
+      "source": "https://commons.wikimedia.org/wiki/File:Remington_870_Police_(55284788188).jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "model_or_variant": "Benelli M4",
+      "source": "https://commons.wikimedia.org/wiki/File:Benelli_m4_2.jpg",
+      "license": "Public domain"
+    },
+    {
+      "model_or_variant": "Glock 19",
+      "source": "https://commons.wikimedia.org/wiki/File:Glock_19_Generation_4_9mm_Pistol.jpg",
+      "license": "CC0"
+    },
+    {
+      "model_or_variant": "Mossberg 500",
+      "source": "https://commons.wikimedia.org/wiki/File:Mossberg_500_Bantam.png",
+      "license": "CC BY-SA 3.0"
+    }
+  ],
+  "screenshot_reference_crops": {
+    "path": "Weapon-Detection/screenshot-references",
+    "counts": {
+      "hammer": 12,
+      "knife": 14,
+      "rod": 11,
+      "stick": 14,
+      "straight_razor": 3,
+      "scissors": 18,
+      "blade": 2
+    },
+    "total": 74,
+    "annotation_status": "All reviewed; usable images labeled; unsuitable crops excluded",
+    "reference_only": true,
+    "review": {
+      "labeled_images": 53,
+      "boxes": 59,
+      "excluded_images": 21,
+      "excluded": [
+        "knife/knife_04.jpg",
+        "rod/rod_01.jpg",
+        "rod/rod_03.jpg",
+        "rod/rod_05.jpg",
+        "rod/rod_07.jpg",
+        "rod/rod_09.jpg",
+        "rod/rod_11.jpg",
+        "stick/stick_01.jpg",
+        "stick/stick_02.jpg",
+        "stick/stick_03.jpg",
+        "stick/stick_04.jpg",
+        "stick/stick_05.jpg",
+        "stick/stick_06.jpg",
+        "stick/stick_07.jpg",
+        "stick/stick_09.jpg",
+        "stick/stick_10.jpg",
+        "stick/stick_11.jpg",
+        "stick/stick_13.jpg",
+        "stick/stick_14.jpg",
+        "stick/stick_15.jpg",
+        "scissors/scissors_18.jpg"
+      ],
+      "all_crops_reviewed": true
+    }
+  },
+  "bulk_training_trial": {
+    "completed_epochs": 22,
+    "heldout_images": 3,
+    "heldout_precision": 0.0,
+    "heldout_recall": 0.0,
+    "heldout_mAP50": 0.0,
+    "source": "captured training log /tmp/bulk-labeled-training.log",
+    "checkpoint_status": "run directory not available after completion",
+    "installed": false,
+    "limitation": "No held-out scissors or blade evaluation; training stopped on a single sword validation image."
+  }
+}

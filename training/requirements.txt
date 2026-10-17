@@ -1,0 +1,4 @@
+-r ../requirements.txt
+torchvision>=0.17
+PyYAML>=6
+numpy>=1.26

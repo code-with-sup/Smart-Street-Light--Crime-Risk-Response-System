@@ -1,0 +1,17 @@
+{
+  "source": "https://huggingface.co/cosgun99/gun-knife-yolo11n",
+  "revision": "572728c",
+  "license": "MIT (publisher declaration)",
+  "sha256": "07241a8fc57d0f3fd29231dd72b9f452375745290b2185440de0165590997cb5",
+  "classes": {
+    "0": "gun",
+    "1": "knife"
+  },
+  "training": {
+    "epochs": 50,
+    "train_images": 29446,
+    "validation_images": 3681,
+    "test_images": 3681
+  },
+  "training_note": "Publisher-reported merged gun/knife dataset; weights downloaded, not trained locally."
+}

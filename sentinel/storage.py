@@ -170,6 +170,17 @@ class Store:
             self._execute(f"UPDATE incidents SET {assignments} WHERE id = ?", (*allowed.values(), incident_id))
         return self.incident(incident_id)
 
+    def delete_clip(self, incident_id: int) -> bool:
+        """Remove only this incident's video, retaining its snapshot and review record."""
+        with self._lock:
+            row = self._db.execute("SELECT clip FROM incidents WHERE id = ?", (incident_id,)).fetchone()
+            if row is None:
+                return False
+            self._remove_snapshot(row["clip"])
+            self._db.execute("UPDATE incidents SET clip = NULL WHERE id = ?", (incident_id,))
+            self._db.commit()
+        return True
+
     def delete_incident(self, incident_id: int) -> bool:
         item = self.incident(incident_id)
         if not item:

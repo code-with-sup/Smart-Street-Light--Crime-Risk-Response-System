@@ -1,0 +1,22 @@
+{
+  "image": "knife_mislabeled_scissors_20261010.png",
+  "correct_class": "knife",
+  "observed_wrong_class": "scissors",
+  "source_filename": "Screenshot 2026-10-10 at 4.49.24\u202fPM.png",
+  "source_crop_xyxy_pixels": [
+    1734,
+    424,
+    2145,
+    1176
+  ],
+  "sha256": "981ac6e677c9d95484c1c407dd9801832ac6ed01c61001f3a0d0beb563232c03",
+  "box_xyxy_normalized": [
+    0.04,
+    0.02,
+    0.94,
+    1.0
+  ],
+  "reference_only": true,
+  "training_status": "review before training: existing app bounding-box overlay, partly obscured handle",
+  "model_attribution": "Tracked COCO detection; generic YOLO model supplies the scissors label. This is not corrected by changing class-name mapping."
+}

@@ -1,4 +1,4 @@
-/* Sentinel Street dashboard. Tokens live in theme.css. */
+/* Smart Street dashboard. Tokens live in theme.css. */
 svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 svg.scene { width: 100%; height: 100%; stroke: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -168,6 +168,14 @@ table.table { width: 100%; border-collapse: collapse; }
 .stat-sub { color: var(--faint); font-size: 12px; }
 
 /* ---------- stage: camera / scene with HUD ---------- */
+.live-camera-panel { min-width: 0; align-self: start; }
+.camera-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 0 0; }
+.camera-choice { flex: 1; min-width: 180px; }
+.camera-choice select { width: 100%; }
+.camera-status { flex-basis: 100%; overflow-wrap: anywhere; }
+.live-camera-panel > .stage { width: 100%; min-width: 0; border-radius: 0 0 12px 12px; }
+@media (max-width: 600px) { .camera-choice { flex-basis: 100%; } #lv-camera-connect { flex: 1; } }
+
 .stage { position: relative; border-radius: 12px; overflow: hidden; background: var(--feed-bg); aspect-ratio: 16 / 8; min-height: 340px; border: 1px solid var(--border); box-shadow: var(--shadow); isolation: isolate; }
 .stage.tall { aspect-ratio: 16 / 9; }
 .stage-media { position: absolute; inset: 0; }
@@ -290,6 +298,9 @@ table.table { width: 100%; border-collapse: collapse; }
 .toolbar .spacer { flex: 1; }
 .inc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
 .inc-card { overflow: hidden; cursor: pointer; transition: transform .2s, border-color .2s; display: flex; flex-direction: column; animation: rise .4s both; }
+.inc-open { flex: 1; }
+.inc-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.inc-actions { display: flex; justify-content: flex-end; padding: 0 14px 13px; cursor: default; }
 .inc-card:hover { transform: translateY(-3px); border-color: var(--accent-line); }
 .inc-thumb { aspect-ratio: 16 / 10; background: var(--feed-bg) center / cover no-repeat; position: relative; }
 .inc-thumb .badge { position: absolute; top: 10px; left: 10px; background: rgba(8, 8, 8, .78); backdrop-filter: blur(6px); }

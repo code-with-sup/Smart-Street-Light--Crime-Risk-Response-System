@@ -1,4 +1,4 @@
-# Sentinel Street — AI Smart Street Light with Crime-Risk Response
+# Smart Street — AI Smart Street Light with Crime-Risk Response
 
 An intelligent IoT and AI-based smart street light that improves public safety by detecting
 suspicious activity and responding to different crime-risk levels.
@@ -42,7 +42,12 @@ py -3.12 -m venv .venv
 ```
 
 The browser opens the landing page at **http://127.0.0.1:8000**. Click **Open control room**
-(or go to **http://127.0.0.1:8000/app**), then press **Start camera**.
+(or go to **http://127.0.0.1:8000/app**). In **Live monitoring**, choose a
+**Camera source**, then press **Start camera**. For a Logitech USB webcam, plug it in,
+press **Refresh cameras**, and select its name (for example, **C270 HD WEBCAM**).
+While video is running, choose another source and press **Switch camera**.
+The switch icon in the video controls opens the same camera selector. If a selected
+webcam is unavailable, the app reports it and keeps any working feed running.
 
 On macOS, run it from **Terminal.app** and click **Allow** when asked for camera access.
 No webcam? Play a video as the camera: `run.py --video street.mp4`.
@@ -93,3 +98,42 @@ GUIDE.md         full guide: setup, how it works, ESP32, alerts, retraining, tro
 - Weapon model trained on the "Yolo Weapon Detection" dataset (gsds-workspace, Roboflow Universe, CC BY 4.0);
   example images on the Overview come from its test split (`web/showcase/CREDITS.txt`).
 - 3D character "Michelle" and motion rig "Vanguard": Mixamo assets shipped with the three.js examples (MIT).
+
+## Training with local weapon and UCF-Crime data
+
+Dataset validation, training commands, evaluation reports, and model deployment
+limits are described in [training/README.md](training/README.md). Raw datasets and
+training outputs remain local and are excluded from Git.
+
+## Weapon SOS timing
+
+Automatic weapon SOS requires a weapon above the configured confidence threshold in fresh camera detections continuously for more than 30 seconds. One alert is sent per uninterrupted episode, even in manual mode. Disappearance, stopped/stalled camera, or camera switching resets the timer. Operator-confirmed alerts and physical SOS button presses remain immediate. Old pending incidents are not automatically replayed at restart. Risk lights/evidence can still activate before the SOS timer completes. The model can confuse knives and scissors; timing does not correct model classification.
+
+### Experimental weapon contour check
+
+On branch `feat/weapon-contour-check`, Settings → **Weapon contour check · experimental**
+enables a classical OpenCV check (on by default). Start the camera in Live monitoring.
+Detected knife/scissors and broad weapon crops show **CV shape: scissors-like**,
+**blade-like**, or **uncertain**, both under their video boxes and in **In view now**.
+Hover the shape hint in the detection list for its explanation. Use the Settings
+switch and Save settings to compare with the check disabled; no model reload is needed.
+
+The algorithm estimates a simple background from the crop border, segments a
+foreground silhouette by Lab color distance, and examines contour hierarchy,
+enclosed handle-like holes, PCA orientation, elongation and taper. Two handle-like
+loops support scissors-like; an elongated taper without loops supports blade-like.
+A blade-like silhouette is not proof of a knife: closed scissors can look similar.
+A hand covering the handle, complex backgrounds, blur, small crops, and clipped
+outlines often yield uncertain. This does not identify firearm models or crimes.
+It analyzes at most four eligible detections per frame and caps crop resolution
+at 256 pixels along the longest dimension to bound CPU work.
+
+The hint is independent advisory metadata, not a calibrated confidence or a new
+trained class. YOLO's label, confidence, category and existing weapon SOS rule
+remain intact. Synthetic tests verify intended geometry and fallbacks; live
+accuracy must be evaluated separately. Original images and model weights are
+unchanged.
+
+## Running in Antigravity or Terminal
+
+See [RUN_PROJECT.md](RUN_PROJECT.md) for the current project path, verified launch commands, and the Antigravity **Run Smart Street** task.

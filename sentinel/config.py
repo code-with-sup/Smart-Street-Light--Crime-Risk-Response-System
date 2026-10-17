@@ -28,12 +28,14 @@ DEFAULT_SETTINGS: dict = {
     "time_zone": "Asia/Kolkata",
     "model": "yolo11n",  # see detection.MODELS
     "camera_index": 0,
+    "camera_device_id": "",
     "mirror": False,
     "confidence": 0.40,
     "weapon_confidence": 0.55,  # tuned on the weapon model's test split (see models/custom/README.txt)
     "crime_confidence": 0.65,   # crime classes (violence, fight, robbery) of custom models; tuned on crime.pt's test split
     "behaviour_analysis": True,
     "tamper_detection": True,
+    "weapon_shape_check": True,  # advisory contours; never overrides YOLO or SOS
     "blur_faces": "off",        # off | live (operator screen only; evidence keeps faces) | everywhere   # camera covered / blurred / turned away  # pose-based crime cues: fight, person down, hands up, running
     "detect_interval_ms": 250,
     "night_start": "18:30",
@@ -43,6 +45,7 @@ DEFAULT_SETTINGS: dict = {
     "crowd_threshold": 6,
     "loiter_seconds": 60,
     "low_brightness": 20,
+    "pir_enabled": False,  # PIR response can be paused independently of camera alarms
     "strobe_on_high": True,   # lamp flashes while risk is HIGH (deters, draws attention)
     "sos_hold_s": 60,
     "voice_warnings": "off",  # off | high | medium (MEDIUM and HIGH); spoken from the computer's speaker

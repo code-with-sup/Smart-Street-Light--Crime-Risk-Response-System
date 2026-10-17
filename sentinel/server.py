@@ -33,7 +33,7 @@ async def lifespan(_app: FastAPI):
     sentinel.shutdown()
 
 
-app = FastAPI(title="Sentinel Street", lifespan=lifespan)
+app = FastAPI(title="Smart Street", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 
@@ -125,15 +125,21 @@ def state() -> dict:
 # ----------------------------------------------------------------- camera
 class CameraStart(BaseModel):
     index: int | None = Field(default=None, ge=0, le=9)
+    device_id: str | None = Field(default=None, max_length=256)
+
+
+@app.get("/api/cameras")
+def cameras() -> dict:
+    return sentinel.camera.devices()
 
 
 @app.post("/api/camera/start")
 def camera_start(body: CameraStart) -> dict:
-    ok, message = sentinel.camera.start(body.index)
+    ok, message = sentinel.camera.start(body.index, body.device_id)
     if not ok:
         raise HTTPException(409, message)
     sentinel.camera_changed()
-    sentinel.update_settings({"camera_index": sentinel.camera.index})
+    sentinel.update_settings({"camera_index": sentinel.camera.index, "camera_device_id": sentinel.camera.device_id})
     sentinel.note("system", message)
     return {"message": message}
 
@@ -141,6 +147,7 @@ def camera_start(body: CameraStart) -> dict:
 @app.post("/api/camera/stop")
 def camera_stop() -> dict:
     sentinel.camera.stop()
+    sentinel.camera_changed()
     sentinel.note("system", "Camera stopped")
     return {"message": "Camera stopped"}
 
@@ -150,7 +157,7 @@ def camera_switch() -> dict:
     ok, message = sentinel.camera.switch()
     if ok:
         sentinel.camera_changed()
-        sentinel.settings = sentinel.store.save_settings({"camera_index": sentinel.camera.index})
+        sentinel.settings = sentinel.store.save_settings({"camera_index": sentinel.camera.index, "camera_device_id": sentinel.camera.device_id})
     return {"ok": ok, "message": message}
 
 
@@ -192,6 +199,17 @@ def patch_incident(incident_id: int, body: IncidentPatch) -> dict:
     if item is None:
         raise HTTPException(404)
     return item
+
+
+@app.delete("/api/incidents/{incident_id}/clip")
+def delete_incident_clip(incident_id: int) -> dict:
+    try:
+        found = sentinel.store.delete_clip(incident_id)
+    except OSError:
+        raise HTTPException(500, "Could not delete the video. Please try again.") from None
+    if not found:
+        raise HTTPException(404)
+    return {"deleted_clip": incident_id}
 
 
 @app.delete("/api/incidents/{incident_id}")
@@ -255,8 +273,8 @@ def test_contact(contact_id: int) -> dict:
     contact = sentinel.store.contact(contact_id)
     if contact is None:
         raise HTTPException(404)
-    ok, error = sentinel.notifier.send(contact, "Sentinel Street test alert",
-                                       "This is a test message from your Sentinel Street dashboard. "
+    ok, error = sentinel.notifier.send(contact, "Smart Street test alert",
+                                       "This is a test message from your Smart Street dashboard. "
                                        "If you received it, alerts to you are working.")
     sentinel.store.log_alert(None, contact_id, contact["channel"], ok, error)
     if not ok:

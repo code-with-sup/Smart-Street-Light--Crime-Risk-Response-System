@@ -45,7 +45,7 @@ def build_pdf(incidents: list[dict], *, start: datetime, end: datetime, tz: Zone
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 20)
     pdf.set_xy(14, 10)
-    pdf.cell(0, 9, "Sentinel Street - Safety Report")
+    pdf.cell(0, 9, "Smart Street - Safety Report")
     pdf.set_font("Helvetica", "", 10)
     pdf.set_xy(14, 22)
     period = f"{start:%d %b %Y} to {end:%d %b %Y}  |  Generated {datetime.now(tz):%d %b %Y %H:%M %Z}"

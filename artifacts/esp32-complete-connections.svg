@@ -1,0 +1,292 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2050" viewBox="0 0 1600 2050">
+<rect width="1600" height="2050" fill="#f3f6fa"/>
+<text x="55" y="65" font-family="Arial, sans-serif" font-size="43" font-weight="700" fill="#182b42" text-anchor="start">ESP32 + breadboard LED + buzzer + PIR</text>
+<text x="55" y="109" font-family="Arial, sans-serif" font-size="25" font-weight="400" fill="#182b42" text-anchor="start">Complete connection picture • all ESP32 pin boxes below refer to the SAME board.</text>
+<text x="55" y="146" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#9a3028" text-anchor="start">Unplug USB before moving wires. Follow pin names and hole labels, not wire colour alone.</text>
+<rect x="40" y="185" width="1000" height="760" rx="20" fill="#ffffff" stroke="#cad5e2" stroke-width="2"/>
+<text x="70" y="231" font-family="Arial, sans-serif" font-size="29" font-weight="700" fill="#182b42" text-anchor="start">1  EXTERNAL LED — controlled by D2 / GPIO 2</text>
+<rect x="115" y="306" width="190" height="48" rx="8" fill="#eff4fa" stroke="#bac9d9" stroke-width="2"/>
+<text x="205" y="338" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#182b42" text-anchor="middle">ESP32  D2</text>
+<circle cx="305" cy="330" r="10" fill="#8d4b24" stroke="#182b42" stroke-width="2"/>
+<rect x="115" y="386" width="190" height="48" rx="8" fill="#eff4fa" stroke="#bac9d9" stroke-width="2"/>
+<text x="205" y="418" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#182b42" text-anchor="middle">ESP32  GND</text>
+<circle cx="305" cy="410" r="10" fill="#e4b300" stroke="#182b42" stroke-width="2"/>
+<rect x="500" y="245" width="460" height="460" rx="12" fill="#eef0ed" stroke="#a7b4bd" stroke-width="2"/>
+<text x="730" y="271" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#182b42" text-anchor="middle">BREADBOARD • A–E HALF</text>
+<text x="590" y="298" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">A</text>
+<text x="655" y="298" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">B</text>
+<text x="720" y="298" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">C</text>
+<text x="785" y="298" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">D</text>
+<text x="850" y="298" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">E</text>
+<rect x="570" y="312" width="300" height="36" rx="10" fill="#ecd1bf" stroke="#ecd1bf" stroke-width="2"/>
+<text x="540" y="337" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">6</text>
+<text x="910" y="337" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">6</text>
+<circle cx="590" cy="330" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="330" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="330" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="330" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="330" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="387" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">7</text>
+<text x="910" y="387" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">7</text>
+<circle cx="590" cy="380" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="380" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="380" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="380" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="380" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="437" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">8</text>
+<text x="910" y="437" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">8</text>
+<circle cx="590" cy="430" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="430" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="430" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="430" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="430" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="487" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">9</text>
+<text x="910" y="487" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">9</text>
+<circle cx="590" cy="480" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="480" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="480" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="480" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="480" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<rect x="570" y="512" width="300" height="36" rx="10" fill="#ffcfcf" stroke="#ffcfcf" stroke-width="2"/>
+<text x="540" y="537" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">10</text>
+<text x="910" y="537" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">10</text>
+<circle cx="590" cy="530" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="530" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="530" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="530" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="530" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="587" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">11</text>
+<text x="910" y="587" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">11</text>
+<circle cx="590" cy="580" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="580" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="580" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="580" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="580" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="637" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">12</text>
+<text x="910" y="637" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">12</text>
+<circle cx="590" cy="630" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="630" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="630" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="630" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="630" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<rect x="570" y="662" width="300" height="36" rx="10" fill="#fff0a6" stroke="#fff0a6" stroke-width="2"/>
+<text x="540" y="687" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">13</text>
+<text x="910" y="687" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">13</text>
+<circle cx="590" cy="680" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="680" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="680" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="680" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="680" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<polyline points="305,330 590,330" fill="none" stroke="#8d4b24" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="590" cy="330" r="10" fill="#8d4b24" stroke="#182b42" stroke-width="2"/>
+<text x="326" y="310" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#8d4b24" text-anchor="start">Brown jumper</text>
+<polyline points="850,330 850,530" fill="none" stroke="#7b858d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="835" y="390" width="30" height="80" rx="5" fill="#e4c391" stroke="#8f6a34" stroke-width="2"/>
+<rect x="835" y="407" width="30" height="7" fill="#ba423d"/>
+<rect x="835" y="420" width="30" height="7" fill="#ba423d"/>
+<rect x="835" y="433" width="30" height="7" fill="#774222"/>
+<rect x="835" y="455" width="30" height="7" fill="#b6983d"/>
+<text x="876" y="411" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#182b42" text-anchor="start">330 Ω</text>
+<circle cx="850" cy="330" r="10" fill="#7b858d" stroke="#182b42" stroke-width="2"/>
+<circle cx="850" cy="530" r="10" fill="#7b858d" stroke="#182b42" stroke-width="2"/>
+<polyline points="425,618 425,530 590,530" fill="none" stroke="#d52d37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="455,618 455,680 590,680" fill="none" stroke="#243447" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M420 608 V580 Q420 555 440 555 Q460 555 460 580 V608 Z" fill="#eb3e46" stroke="#9c1c28" stroke-width="3"/>
+<rect x="416" y="606" width="48" height="12" rx="3" fill="#d52d37" stroke="#9c1c28" stroke-width="2"/>
+<text x="384" y="570" font-family="Arial, sans-serif" font-size="27" font-weight="700" fill="#d52d37" text-anchor="start">+</text>
+<text x="467" y="643" font-family="Arial, sans-serif" font-size="27" font-weight="700" fill="#243447" text-anchor="start">−</text>
+<text x="76" y="567" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#d52d37" text-anchor="start">LED + / long leg</text>
+<text x="76" y="600" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#d52d37" text-anchor="start">→ A10</text>
+<text x="76" y="661" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#243447" text-anchor="start">LED − / short leg</text>
+<text x="76" y="694" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#243447" text-anchor="start">→ A13</text>
+<circle cx="590" cy="530" r="10" fill="#d52d37" stroke="#182b42" stroke-width="2"/>
+<circle cx="590" cy="680" r="10" fill="#243447" stroke="#182b42" stroke-width="2"/>
+<polyline points="305,410 355,410 355,760 655,760 655,680" fill="none" stroke="#e4b300" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="655" cy="680" r="10" fill="#e4b300" stroke="#182b42" stroke-width="2"/>
+<text x="377" y="790" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#8c6800" text-anchor="start">Yellow GND jumper → B13</text>
+<text x="70" y="842" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#182b42" text-anchor="start">Exact holes: D2 → A6 • resistor E6–E10 • LED + A10 / − A13 • GND → B13</text>
+<text x="70" y="880" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#182b42" text-anchor="start">A–E holes in the SAME numbered row connect internally. Different rows are separate.</text>
+<text x="70" y="915" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#182b42" text-anchor="start">The LED legs must be in different rows. The resistor can face either way.</text>
+<rect x="40" y="975" width="1000" height="460" rx="20" fill="#ffffff" stroke="#cad5e2" stroke-width="2"/>
+<text x="70" y="1020" font-family="Arial, sans-serif" font-size="29" font-weight="700" fill="#182b42" text-anchor="start">2  BUZZER — two separate breadboard rows</text>
+<rect x="115" y="1096" width="190" height="48" rx="8" fill="#eff4fa" stroke="#bac9d9" stroke-width="2"/>
+<text x="205" y="1128" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#182b42" text-anchor="middle">ESP32  D4</text>
+<circle cx="305" cy="1120" r="10" fill="#246fd5" stroke="#182b42" stroke-width="2"/>
+<rect x="115" y="1176" width="190" height="48" rx="8" fill="#eff4fa" stroke="#bac9d9" stroke-width="2"/>
+<text x="205" y="1208" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#182b42" text-anchor="middle">ESP32  GND</text>
+<circle cx="305" cy="1200" r="10" fill="#e4b300" stroke="#182b42" stroke-width="2"/>
+<rect x="500" y="1060" width="460" height="260" rx="12" fill="#eef0ed" stroke="#a7b4bd" stroke-width="2"/>
+<text x="730" y="1086" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#182b42" text-anchor="middle">BREADBOARD • A–E HALF</text>
+<text x="590" y="1113" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">A</text>
+<text x="655" y="1113" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">B</text>
+<text x="720" y="1113" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">C</text>
+<text x="785" y="1113" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">D</text>
+<text x="850" y="1113" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">E</text>
+<rect x="570" y="1127" width="300" height="36" rx="10" fill="#d0e5ff" stroke="#d0e5ff" stroke-width="2"/>
+<text x="540" y="1152" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">19</text>
+<text x="910" y="1152" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">19</text>
+<circle cx="590" cy="1145" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="1145" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="1145" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="1145" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="1145" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="1202" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">20</text>
+<text x="910" y="1202" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">20</text>
+<circle cx="590" cy="1195" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="1195" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="1195" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="1195" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="1195" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<text x="540" y="1252" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">21</text>
+<text x="910" y="1252" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">21</text>
+<circle cx="590" cy="1245" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="1245" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="1245" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="1245" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="1245" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<rect x="570" y="1277" width="300" height="36" rx="10" fill="#fff0a6" stroke="#fff0a6" stroke-width="2"/>
+<text x="540" y="1302" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">22</text>
+<text x="910" y="1302" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="middle">22</text>
+<circle cx="590" cy="1295" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="655" cy="1295" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="720" cy="1295" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="785" cy="1295" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<circle cx="850" cy="1295" r="7" fill="#8d969a" stroke="#ffffff" stroke-width="2"/>
+<polyline points="305,1120 365,1120 365,1095 480,1095 480,1145 655,1145" fill="none" stroke="#246fd5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="655" cy="1145" r="10" fill="#246fd5" stroke="#182b42" stroke-width="2"/>
+<polyline points="305,1200 355,1200 355,1340 655,1340 655,1295" fill="none" stroke="#e4b300" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="655" cy="1295" r="10" fill="#e4b300" stroke="#182b42" stroke-width="2"/>
+<circle cx="445" cy="1170" r="42" fill="#29343e" stroke="#111a24" stroke-width="3"/>
+<circle cx="445" cy="1170" r="6" fill="#e1c995" stroke="none" stroke-width="2"/>
+<text x="419" y="1166" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff" text-anchor="start">+</text>
+<text x="463" y="1191" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff" text-anchor="start">−</text>
+<polyline points="425,1206 425,1145 590,1145" fill="none" stroke="#246fd5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="465,1206 465,1295 590,1295" fill="none" stroke="#243447" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="590" cy="1145" r="10" fill="#246fd5" stroke="#182b42" stroke-width="2"/>
+<circle cx="590" cy="1295" r="10" fill="#243447" stroke="#182b42" stroke-width="2"/>
+<text x="70" y="1280" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#246fd5" text-anchor="start">Buzzer + → A19</text>
+<text x="70" y="1314" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#243447" text-anchor="start">Buzzer − → A22</text>
+<text x="70" y="1382" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="start">D4 → B19 • GND → B22. Keep the buzzer legs in DIFFERENT rows.</text>
+<text x="70" y="1413" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#182b42" text-anchor="start">Use the + mark on the buzzer to identify its positive leg.</text>
+<rect x="1070" y="185" width="490" height="1250" rx="20" fill="#ffffff" stroke="#cad5e2" stroke-width="2"/>
+<text x="1100" y="232" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#182b42" text-anchor="start">3  PIR MOTION SENSOR</text>
+<text x="1100" y="278" font-family="Arial, sans-serif" font-size="22" font-weight="400" fill="#182b42" text-anchor="start">HC-SR501: place beside the board.</text>
+<text x="1100" y="310" font-family="Arial, sans-serif" font-size="22" font-weight="400" fill="#182b42" text-anchor="start">Wire its three labelled pins directly.</text>
+<rect x="1145" y="385" width="340" height="365" rx="14" fill="#236b53" stroke="#164b3a" stroke-width="2"/>
+<circle cx="1315" cy="505" r="98" fill="#f0f2f0" stroke="#c9d0cc" stroke-width="3"/>
+<circle cx="1270" cy="474" r="22" fill="#e5eae6" stroke="#d0d8d2" stroke-width="2"/>
+<circle cx="1330" cy="461" r="22" fill="#e5eae6" stroke="#d0d8d2" stroke-width="2"/>
+<circle cx="1260" cy="530" r="22" fill="#e5eae6" stroke="#d0d8d2" stroke-width="2"/>
+<circle cx="1330" cy="531" r="22" fill="#e5eae6" stroke="#d0d8d2" stroke-width="2"/>
+<circle cx="1310" cy="496" r="22" fill="#e5eae6" stroke="#d0d8d2" stroke-width="2"/>
+<rect x="1180" y="641" width="55" height="35" rx="4" fill="#dcb649" stroke="#998328" stroke-width="2"/>
+<rect x="1420" y="641" width="40" height="35" rx="4" fill="#dcb649" stroke="#998328" stroke-width="2"/>
+<text x="1315" y="718" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#ffffff" text-anchor="middle">PIR SENSOR</text>
+<text x="1190" y="792" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#d52d37" text-anchor="middle">VCC</text>
+<circle cx="1190" cy="815" r="10" fill="#d52d37" stroke="#182b42" stroke-width="2"/>
+<polyline points="1190,815 1190,1040" fill="none" stroke="#d52d37" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1190" cy="1040" r="10" fill="#d52d37" stroke="#182b42" stroke-width="2"/>
+<text x="1315" y="792" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#198c64" text-anchor="middle">OUT</text>
+<circle cx="1315" cy="815" r="10" fill="#198c64" stroke="#182b42" stroke-width="2"/>
+<polyline points="1315,815 1315,1150" fill="none" stroke="#198c64" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1315" cy="1150" r="10" fill="#198c64" stroke="#182b42" stroke-width="2"/>
+<text x="1440" y="792" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#243447" text-anchor="middle">GND</text>
+<circle cx="1440" cy="815" r="10" fill="#243447" stroke="#182b42" stroke-width="2"/>
+<polyline points="1440,815 1440,1040" fill="none" stroke="#243447" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1440" cy="1040" r="10" fill="#243447" stroke="#182b42" stroke-width="2"/>
+<rect x="1130" y="1040" width="370" height="220" rx="12" fill="#eff4fa" stroke="#bac9d9" stroke-width="2"/>
+<polyline points="1315,815 1315,1150" fill="none" stroke="#198c64" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1190" cy="1040" r="10" fill="#d52d37" stroke="#182b42" stroke-width="2"/>
+<circle cx="1315" cy="1150" r="10" fill="#198c64" stroke="#182b42" stroke-width="2"/>
+<circle cx="1440" cy="1040" r="10" fill="#243447" stroke="#182b42" stroke-width="2"/>
+<text x="1190" y="1080" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#d52d37" text-anchor="middle">VIN</text>
+<text x="1190" y="1111" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#d52d37" text-anchor="middle">5V via USB</text>
+<text x="1440" y="1080" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#243447" text-anchor="middle">GND</text>
+<text x="1315" y="1190" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#198c64" text-anchor="middle">D5 / GPIO 5</text>
+<text x="1315" y="1232" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="middle">ESP32 pins</text>
+<text x="1100" y="1310" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#182b42" text-anchor="start">Match the labels on YOUR PIR.</text>
+<text x="1100" y="1345" font-family="Arial, sans-serif" font-size="22" font-weight="400" fill="#182b42" text-anchor="start">Pin order here is schematic;</text>
+<text x="1100" y="1376" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#182b42" text-anchor="start">check its printed labels before wiring.</text>
+<text x="1100" y="1410" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#9a3028" text-anchor="start">Do not connect PIR VCC to D5.</text>
+<rect x="40" y="1465" width="490" height="535" rx="20" fill="#ffffff" stroke="#cad5e2" stroke-width="2"/>
+<text x="70" y="1508" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#182b42" text-anchor="start">FIND THE PINS ON YOUR ESP32</text>
+<text x="70" y="1540" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#182b42" text-anchor="start">Front / component side • USB at the TOP</text>
+<rect x="190" y="1580" width="190" height="375" rx="12" fill="#263142" stroke="#111b29" stroke-width="2"/>
+<rect x="253" y="1555" width="64" height="51" rx="4" fill="#cbd0d3" stroke="#9ca6af" stroke-width="2"/>
+<rect x="226" y="1768" width="120" height="116" rx="4" fill="#aeb9ba" stroke="#829393" stroke-width="2"/>
+<text x="286" y="1825" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#263142" text-anchor="middle">ESP32</text>
+<circle cx="200" cy="1608" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1608" r="5" fill="#d52d37" stroke="none" stroke-width="2"/>
+<text x="181" y="1614" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">3V3</text>
+<text x="389" y="1614" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#d52d37" text-anchor="start">VIN</text>
+<circle cx="200" cy="1630" r="5" fill="#a87d00" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1630" r="5" fill="#a87d00" stroke="none" stroke-width="2"/>
+<text x="181" y="1636" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#a87d00" text-anchor="end">GND</text>
+<text x="389" y="1636" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#a87d00" text-anchor="start">GND</text>
+<circle cx="200" cy="1652" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1652" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1658" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">D15</text>
+<text x="389" y="1658" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D13</text>
+<circle cx="200" cy="1674" r="5" fill="#8d4b24" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1674" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1680" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#8d4b24" text-anchor="end">D2</text>
+<text x="389" y="1680" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D12</text>
+<circle cx="200" cy="1696" r="5" fill="#246fd5" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1696" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1702" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#246fd5" text-anchor="end">D4</text>
+<text x="389" y="1702" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D14</text>
+<circle cx="200" cy="1718" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1718" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1724" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">RX2</text>
+<text x="389" y="1724" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D27</text>
+<circle cx="200" cy="1740" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1740" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1746" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">TX2</text>
+<text x="389" y="1746" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D26</text>
+<circle cx="200" cy="1762" r="5" fill="#198c64" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1762" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1768" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#198c64" text-anchor="end">D5</text>
+<text x="389" y="1768" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D25</text>
+<circle cx="200" cy="1784" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1784" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1790" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">D18</text>
+<text x="389" y="1790" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D33</text>
+<circle cx="200" cy="1806" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1806" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1812" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">D19</text>
+<text x="389" y="1812" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D32</text>
+<circle cx="200" cy="1828" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1828" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1834" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">D21</text>
+<text x="389" y="1834" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D35</text>
+<circle cx="200" cy="1850" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1850" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1856" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">RX0</text>
+<text x="389" y="1856" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">D34</text>
+<circle cx="200" cy="1872" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1872" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1878" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">TX0</text>
+<text x="389" y="1878" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">VN</text>
+<circle cx="200" cy="1894" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1894" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1900" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">D22</text>
+<text x="389" y="1900" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">VP</text>
+<circle cx="200" cy="1916" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<circle cx="370" cy="1916" r="5" fill="#617187" stroke="none" stroke-width="2"/>
+<text x="181" y="1922" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="end">D23</text>
+<text x="389" y="1922" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#617187" text-anchor="start">EN</text>
+<text x="70" y="1978" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#182b42" text-anchor="start">Use printed labels, not counted pin positions.</text>
+<rect x="560" y="1465" width="1000" height="535" rx="20" fill="#ffffff" stroke="#cad5e2" stroke-width="2"/>
+<text x="592" y="1515" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#182b42" text-anchor="start">BEFORE YOU TEST</text>
+<text x="592" y="1564" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#182b42" text-anchor="start">1. Unplug USB and rebuild ONE external LED circuit first.</text>
+<text x="592" y="1606" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#182b42" text-anchor="start">2. Add the buzzer in rows 19 and 22, then wire the PIR.</text>
+<text x="592" y="1648" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#182b42" text-anchor="start">3. Female jumper end → ESP32 pin. Male end → breadboard hole.</text>
+<text x="592" y="1690" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#182b42" text-anchor="start">4. Plug USB in; close Arduino Serial Monitor; connect the app.</text>
+<text x="592" y="1732" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#182b42" text-anchor="start">5. In Sensors &amp; lights, press Full brightness to check the LED.</text>
+<text x="592" y="1774" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#182b42" text-anchor="start">6. Switch Buzzer on and press Run test to check both.</text>
+<rect x="590" y="1820" width="940" height="115" rx="12" fill="#fff2d9" stroke="#e6c787" stroke-width="2"/>
+<text x="612" y="1855" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#704919" text-anchor="start">WHY THE ESP32 LIGHTS UP BUT THE EXTERNAL LED DOES NOT</text>
+<text x="612" y="1890" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#182b42" text-anchor="start">Your sketch drives D2. Onboard light activity does not verify the external circuit.</text>
+<text x="612" y="1921" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#182b42" text-anchor="start">Check LED polarity, the series resistor, hole numbers, and the GND connection.</text>
+<text x="592" y="1970" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#9a3028" text-anchor="start">Do not connect a bare LED directly to D2 or 3V3. Keep the series resistor.</text>
+</svg>

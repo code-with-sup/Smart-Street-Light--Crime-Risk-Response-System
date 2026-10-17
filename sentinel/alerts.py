@@ -20,13 +20,14 @@ from .config import env
 
 log = logging.getLogger("sentinel.alerts")
 
-CHANNELS = ("email", "telegram")
+CHANNELS = ("email", "telegram", "phone")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 CHAT_ID_RE = re.compile(r"^-?\d{3,20}$")
 
 
 def channel_status() -> dict:
     return {
+        "phone": {"configured": False, "setup": "Manual emergency call only; automatic SMS/calling is not configured."},
         "email": {
             "configured": bool(env("SMTP_HOST") and env("SMTP_USER") and env("SMTP_PASSWORD")),
             "sender": env("SMTP_USER"),
@@ -43,7 +44,9 @@ def channel_status() -> dict:
 
 def validate_address(channel: str, address: str) -> str | None:
     if channel not in CHANNELS:
-        return "Channel must be email or telegram"
+        return "Channel must be email, telegram or phone"
+    if channel == "phone" and not re.fullmatch(r"\+?[0-9]{7,15}", address):
+        return "Enter a phone number with 7 to 15 digits, optionally starting with +"
     if channel == "email" and not EMAIL_RE.match(address):
         return "Enter a valid email address"
     if channel == "telegram" and not CHAT_ID_RE.match(address):

@@ -17,8 +17,8 @@ def knife(conf=0.8):
     return Detection((0, 0, 5, 5), "knife", conf, "weapon")
 
 
-def run(engine, detections, *, night=False, motion=False, t=1000.0):
-    return engine.evaluate(detections, is_night=night, motion=motion, settings=SETTINGS, now=t)
+def run(engine, detections, *, night=False, motion=False, t=1000.0, camera_motion=False):
+    return engine.evaluate(detections, is_night=night, motion=motion, settings=SETTINGS, now=t, camera_motion=camera_motion)
 
 
 def test_empty_street_by_day_is_low_and_light_off():
@@ -26,22 +26,33 @@ def test_empty_street_by_day_is_low_and_light_off():
     assert (result.level, result.brightness, result.buzzer) == ("LOW", 0, False)
 
 
-def test_empty_street_at_night_is_dimmed():
+def test_empty_street_at_night_without_motion_is_light_off():
     result = run(RiskEngine(), [], night=True)
-    assert (result.level, result.brightness) == ("LOW", SETTINGS["low_brightness"])
+    assert (result.level, result.brightness) == ("LOW", 0)
 
 
-def test_person_at_night_is_medium_full_light():
+def test_camera_motion_is_dim_light():
+    result = run(RiskEngine(), [], camera_motion=True)
+    assert (result.level, result.brightness, result.buzzer) == ("LOW", SETTINGS["low_brightness"], False)
+
+
+def test_person_without_motion_is_light_off():
     result = run(RiskEngine(), [person()], night=True)
-    assert (result.level, result.brightness, result.buzzer) == ("MEDIUM", 100, False)
+    assert (result.level, result.brightness, result.buzzer) == ("MEDIUM", 0, False)
+
+
+def test_moving_person_is_dim_light():
+    result = run(RiskEngine(), [person()], night=True, camera_motion=True)
+    assert (result.level, result.brightness, result.buzzer) == ("MEDIUM", SETTINGS["low_brightness"], False)
 
 
 def test_pir_motion_at_night_without_camera_is_medium():
     assert run(RiskEngine(), [], night=True, motion=True).level == "MEDIUM"
 
 
-def test_person_by_day_stays_low():
-    assert run(RiskEngine(), [person()]).level == "LOW"
+def test_person_by_day_without_motion_is_light_off():
+    result = run(RiskEngine(), [person()])
+    assert (result.level, result.brightness, result.buzzer) == ("LOW", 0, False)
 
 
 def test_crowd_is_medium_even_by_day():
@@ -109,3 +120,21 @@ def test_valid_settings_are_coerced():
     assert _coerce("crowd_threshold", "8") == 8
     assert _coerce("night_start", "19:15") == "19:15"
     assert _coerce("time_zone", "Europe/London") == "Europe/London"
+
+
+@pytest.mark.parametrize("label", ["Glock 19", "Colt M1911", "Smith & Wesson Model 10", "Beretta M9", "SIG Sauer P320", "AK-47", "AR-15", "M4A1", "Ruger 10/22", "Winchester Model 70", "Remington 870", "Mossberg 500", "Benelli M4", "scissors", "bomb", "talwar", "katta", "straight_razor", "ustara"])
+def test_requested_weapon_labels_map_when_a_trained_model_emits_them(label):
+    from sentinel.detection import category_for
+    assert category_for(label) == "weapon"
+
+
+@pytest.mark.parametrize("label", ["stick", "wooden_stick", "rod", "metal rod", "ruler", "hammer", "screwdriver"])
+def test_tools_can_be_drawn_without_automatically_triggering_weapon_alert(label):
+    import numpy as np
+    from sentinel.detection import category_for, annotate
+    assert category_for(label) == "tool"
+    detections = [Detection((0, 0, 10, 10), label, .95, "tool")]
+    engine = RiskEngine()
+    for t in (1000, 1001, 1002):
+        assert run(engine, detections, t=t).level == "LOW"
+    assert annotate(np.zeros((40, 40, 3), dtype=np.uint8), detections).shape == (40, 40, 3)

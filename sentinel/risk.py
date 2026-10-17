@@ -62,7 +62,7 @@ class RiskEngine:
         self.__init__()
 
     def evaluate(self, detections: list[Detection], *, is_night: bool, motion: bool, settings: dict,
-                 events: list[Event] | None = None, now: float | None = None) -> RiskResult:
+                 events: list[Event] | None = None, now: float | None = None, camera_motion: bool = False) -> RiskResult:
         now = now or time.time()
         events = events or []
         people = sum(d.category == "person" for d in detections)
@@ -134,9 +134,13 @@ class RiskEngine:
                 result.score = min(30, people * 5 + vehicles * 2)
                 result.reasons.append("No threat detected" if (people or vehicles) else "Street clear")
 
-        if result.level == "LOW":
-            result.brightness = settings["low_brightness"] if is_night else 0
-        else:
+        if result.level == "HIGH":
             result.brightness = 100
-        result.buzzer = result.level == "HIGH"
+            result.buzzer = True
+        elif camera_motion:
+            result.brightness = settings["low_brightness"]
+            result.buzzer = False
+        else:
+            result.brightness = 0
+            result.buzzer = False
         return result

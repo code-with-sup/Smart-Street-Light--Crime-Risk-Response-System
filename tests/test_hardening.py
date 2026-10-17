@@ -111,7 +111,7 @@ def test_camera_that_dies_clears_its_frame(monkeypatch):
 
 
 # ---------------------------------------------------------------- service
-def test_weapon_raises_high_incident_and_auto_alert_is_sent(service):
+def test_weapon_raises_high_incident_and_auto_alert_waits_for_presence(service):
     service.store.add_contact("Control room", "email", "control@example.com")
     service.settings = service.store.save_settings({"alert_mode": "auto"})
     service.detector.output = [person(), knife()]
@@ -120,15 +120,15 @@ def test_weapon_raises_high_incident_and_auto_alert_is_sent(service):
         last = service._tick(last)
     assert service.result.level == "HIGH" and service.hardware.buzzer
     high = service.store.incidents(level="HIGH")
-    assert len(high) == 1 and high[0]["snapshot"] and high[0]["alert_status"] == "sent"
-    assert service.notifier.sent and "knife" in service.notifier.sent[0][1]
+    assert len(high) == 1 and high[0]["snapshot"] and high[0]["alert_status"] == "pending"
+    assert not service.notifier.sent
 
 
 def test_auto_alert_inside_cooldown_is_marked_suppressed(service):
     service.store.add_contact("Control room", "email", "control@example.com")
     service.settings = service.store.save_settings({"alert_mode": "auto", "alert_cooldown_s": 600, "incident_cooldown_s": 5})
     service._last_auto_alert = time.time()  # an alert just went out
-    service.detector.output = [person(), knife()]
+    service.detector.output = [person(), Detection((0, 0, 20, 20), "fight", .9, "event")]
     last = 0
     for _ in range(3):
         last = service._tick(last)
@@ -338,15 +338,15 @@ def test_energy_ignores_gaps_in_the_loop(service):
     assert service._energy["baseline_wh"] < 1
 
 
-def test_unconfirmed_high_alert_escalates_after_timeout(service):
+def test_old_pending_high_alert_is_not_replayed_after_restart(service):
     service.store.add_contact("Control room", "email", "control@example.com")
     service.settings = service.store.save_settings({"escalate_after_min": 5})
     incident = service.store.add_incident(ts=time.time() - 400, level="HIGH", label="weapon", confidence=0.7, people=1,
                                           vehicles=0, reasons=["Weapon detected"], snapshot=None, lat=None, lng=None,
                                           alert_status="pending")
     service._housekeeping(service.result, [], time.time())
-    assert service.store.incident(incident["id"])["alert_status"] == "sent"
-    assert service.notifier.sent
+    assert service.store.incident(incident["id"])["alert_status"] == "pending"
+    assert not service.notifier.sent
 
 
 def test_recent_pending_alert_is_not_escalated_yet(service):
